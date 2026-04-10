@@ -4,6 +4,7 @@ These tests call service functions directly (bypassing HTTP/ASGI) so that
 pytest-cov can reliably track every executed branch.  They complement the
 integration tests in test_*_integration.py which exercise the full stack.
 """
+# ruff: noqa: S106  # hardcoded passwords/tokens are unavoidable in test fixtures
 
 from __future__ import annotations
 
@@ -25,10 +26,8 @@ from app.core.exceptions import (
 )
 from app.core.security import create_refresh_token, hash_password
 from app.models.booking import Booking, BookingStatus, BookingType
-from app.models.membership import Membership, MembershipPlan, MembershipStatus
-from app.models.message import Conversation, Message
-from app.models.property import HourlyBookingConfig, Property, PropertyImage
-from app.models.review import Review
+from app.models.membership import Membership, MembershipStatus
+from app.models.property import HourlyBookingConfig, Property
 from app.models.user import HostProfile, User
 from app.schemas.booking import BookingCreate
 from app.schemas.membership import MembershipSubscribeRequest
