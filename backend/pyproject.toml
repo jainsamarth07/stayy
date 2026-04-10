@@ -51,6 +51,28 @@ ignore = [
 "app/models/*.py" = ["F821"]              # forward-reference strings in SQLAlchemy relationships
 "alembic/versions/*.py" = ["E501"]        # migration files have long auto-generated lines
 
+[tool.coverage.run]
+concurrency = ["greenlet", "thread"]
+omit = [
+    "app/tasks/*",
+    "app/core/logging_config.py",
+    "app/core/email.py",
+    "app/core/rate_limiter.py",
+    "app/core/permissions.py",
+    "app/main.py",
+    "app/database.py",
+    "alembic/*",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "if TYPE_CHECKING:",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "@(abc\\.)?abstractmethod",
+]
+
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests"]
