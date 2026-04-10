@@ -1,0 +1,51 @@
+-- StayNest — Seed script for admin user & sample data
+-- Run after Alembic migrations: alembic upgrade head
+--
+-- Connect:
+--   Docker:  docker exec -it <db_container> psql -U staynest staynest
+--   Local:   psql -U staynest -d staynest
+
+-- ============================================================
+-- 1. Promote an existing user to admin
+--    (run seed_and_test.py first, which creates admin_<ts>@example.com)
+-- ============================================================
+-- UPDATE users SET role = 'admin' WHERE email = 'admin_XXXXXX@example.com';
+
+-- OR create an admin directly (password = bcrypt hash of "AdminPass123!"):
+-- The hash below corresponds to "AdminPass123!" using bcrypt.
+-- You can generate your own with: python -c "from passlib.context import CryptContext; print(CryptContext(schemes=['bcrypt']).hash('AdminPass123!'))"
+
+-- ============================================================
+-- 2. Quick role update for ANY user
+-- ============================================================
+-- Make someone an admin:
+--   UPDATE users SET role = 'admin' WHERE email = 'your@email.com';
+--
+-- Make someone a host:
+--   UPDATE users SET role = 'host' WHERE email = 'your@email.com';
+--   INSERT INTO host_profiles (id, user_id) VALUES (gen_random_uuid(), (SELECT id FROM users WHERE email = 'your@email.com'));
+
+-- ============================================================
+-- 3. Useful queries for testing
+-- ============================================================
+-- List all users:
+--   SELECT id, email, role, is_active, created_at FROM users ORDER BY created_at;
+--
+-- List all properties:
+--   SELECT id, title, city, price_per_night, is_active FROM properties;
+--
+-- List all bookings:
+--   SELECT b.id, b.status, b.total_price, b.check_in, b.check_out,
+--          g.email AS guest, p.title AS property
+--   FROM bookings b
+--   JOIN users g ON g.id = b.guest_id
+--   JOIN properties p ON p.id = b.property_id;
+--
+-- List all reviews:
+--   SELECT r.rating, r.comment, u.email AS reviewer, p.title
+--   FROM reviews r
+--   JOIN users u ON u.id = r.reviewer_id
+--   JOIN properties p ON p.id = r.property_id;
+--
+-- Reset everything (DANGER):
+--   TRUNCATE reviews, bookings, messages, memberships, property_images, hourly_booking_configs, properties, host_profiles, users CASCADE;
