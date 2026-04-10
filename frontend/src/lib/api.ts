@@ -156,4 +156,6 @@ export const adminApi = {
     api.get("/admin/memberships", { params: { page } }),
   toggleUserStatus: (userId: string) =>
     api.put(`/admin/users/${userId}/status`),
+  togglePropertyStatus: (propertyId: string) =>
+    api.put(`/admin/properties/${propertyId}/status`),
 };

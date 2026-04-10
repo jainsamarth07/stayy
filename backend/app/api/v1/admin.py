@@ -70,7 +70,6 @@ async def list_all_properties(
                 "id": str(p.id),
                 "title": p.title,
                 "city": p.city,
-                "country": p.country,
                 "is_active": p.is_active,
                 "price_per_night": float(p.price_per_night),
                 "host_name": p.host.full_name if p.host else "Unknown",
@@ -110,7 +109,7 @@ async def list_all_memberships(
                 "id": str(m.id),
                 "user_name": m.host.user.full_name if m.host and m.host.user else "Unknown",
                 "email": m.host.user.email if m.host and m.host.user else "",
-                "plan": m.plan_type,
+                "plan_type": m.plan_type,
                 "status": m.status,
                 "amount": float(m.amount),
                 "started_at": m.start_date.isoformat(),
@@ -158,7 +157,7 @@ async def list_all_bookings(
                 "host_id": str(b.host_id),
                 "check_in": b.check_in.isoformat(),
                 "check_out": b.check_out.isoformat(),
-                "total_price": b.total_price,
+                "total_price": float(b.total_price),
                 "status": b.status,
                 "booking_type": b.booking_type,
                 "created_at": b.created_at.isoformat(),
@@ -229,3 +228,21 @@ async def toggle_user_status(
     user.is_active = not user.is_active
     await db.flush()
     return {"id": str(user.id), "is_active": user.is_active}
+
+
+@router.put("/properties/{property_id}/status")
+async def toggle_property_status(
+    property_id: uuid.UUID,
+    _admin: User = Depends(require_admin),
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    """Enable or disable a property listing (admin only)."""
+    result = await db.execute(select(Property).where(Property.id == property_id))
+    prop = result.scalar_one_or_none()
+    if prop is None:
+        from app.core.exceptions import NotFoundError  # noqa: E402
+        raise NotFoundError("Property not found")
+
+    prop.is_active = not prop.is_active
+    await db.flush()
+    return {"id": str(prop.id), "is_active": prop.is_active}

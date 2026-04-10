@@ -38,7 +38,7 @@ async def test_subscribe_as_host(client: AsyncClient, host_token: str) -> None:
     data = response.json()
     assert data["plan_type"] == "basic"
     assert data["status"] == "active"
-    assert data["amount"] == 29.0
+    assert data["amount"] == 2499.0
 
 
 @pytest.mark.asyncio

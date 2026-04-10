@@ -24,7 +24,7 @@ async def test_subscribe_upgrade_plan(client: AsyncClient, host_token: str) -> N
     data = response.json()
     assert data["plan_type"] == "pro"
     assert data["status"] == "active"
-    assert data["amount"] == 79.0
+    assert data["amount"] == 6499.0
     assert data["max_listings"] == 25
 
 
@@ -39,7 +39,7 @@ async def test_subscribe_premium_plan(client: AsyncClient, host_token: str) -> N
     assert response.status_code == 201
     data = response.json()
     assert data["plan_type"] == "premium"
-    assert data["amount"] == 199.0
+    assert data["amount"] == 16499.0
 
 
 @pytest.mark.asyncio

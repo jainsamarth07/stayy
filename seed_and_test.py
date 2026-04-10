@@ -227,7 +227,7 @@ def main():
     # ------------------------------------------------------------------
     print("\n--- Step 6: Host Confirms Booking ---")
     if booking_id:
-        r = client.patch(f"/bookings/{booking_id}/status",
+        r = client.put(f"/bookings/{booking_id}/status",
                          headers=auth_header(host_access),
                          json={"status": "confirmed"})
         pp("Confirm Booking", r)
@@ -240,7 +240,7 @@ def main():
     print("\n--- Step 7: Review Flow ---")
     if booking_id:
         # Complete the booking first
-        r = client.patch(f"/bookings/{booking_id}/status",
+        r = client.put(f"/bookings/{booking_id}/status",
                          headers=auth_header(host_access),
                          json={"status": "completed"})
         pp("Complete Booking", r)
@@ -265,25 +265,24 @@ def main():
     # ------------------------------------------------------------------
     print("\n--- Step 8: Messaging ---")
     if property_id and guest_id and host_id:
-        # Guest sends a message to host
-        r = client.post("/messages", headers=auth_header(guest_access), json={
-            "receiver_id": host_id,
+        # Guest starts a conversation about the property
+        r = client.post("/conversations", headers=auth_header(guest_access), json={
             "property_id": property_id,
-            "content": "Hi Bob! I loved the apartment. Are there any restaurants nearby?"
+            "message": "Hi Bob! I loved the apartment. Are there any restaurants nearby?"
         })
-        pp("Guest Sends Message", r)
+        conv_data = pp("Guest Starts Conversation", r)
+        conv_id = conv_data.get("id") if isinstance(conv_data, dict) else None
 
-        # Host replies
-        r = client.post("/messages", headers=auth_header(host_access), json={
-            "receiver_id": guest_id,
-            "property_id": property_id,
-            "content": "Thanks Alice! Yes, there are great restaurants within walking distance."
-        })
-        pp("Host Replies", r)
+        # Host replies in the same conversation
+        if conv_id:
+            r = client.post(f"/conversations/{conv_id}/messages", headers=auth_header(host_access), json={
+                "content": "Thanks Alice! Yes, there are great restaurants within walking distance."
+            })
+            pp("Host Replies", r)
 
-        # Guest views conversation
-        r = client.get("/messages", headers=auth_header(guest_access))
-        pp("Guest's Messages", r)
+        # Guest views conversations
+        r = client.get("/conversations", headers=auth_header(guest_access))
+        pp("Guest's Conversations", r)
     else:
         print("⚠️  Skipping messaging — missing user/property IDs.")
 
@@ -291,12 +290,13 @@ def main():
     # STEP 9 — Membership for host
     # ------------------------------------------------------------------
     print("\n--- Step 9: Host Membership ---")
-    r = client.post("/memberships", headers=auth_header(host_access), json={
-        "plan_type": "premium"
+    r = client.post("/memberships/subscribe", headers=auth_header(host_access), json={
+        "plan_type": "premium",
+        "payment_token": "tok_test_seed"
     })
     pp("Host Subscribes to Premium", r)
 
-    r = client.get("/memberships/me", headers=auth_header(host_access))
+    r = client.get("/memberships/current", headers=auth_header(host_access))
     pp("Host's Membership", r)
 
     # ------------------------------------------------------------------

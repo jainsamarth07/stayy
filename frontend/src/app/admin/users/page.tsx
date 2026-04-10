@@ -102,7 +102,7 @@ export default function AdminUsersPage() {
                   <tr key={u.id} className="hover:bg-gray-50">
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
-                        <Avatar src={u.avatar_url} fallback={u.full_name || "U"} size="sm" />
+                        <Avatar fallback={u.full_name || "U"} size="sm" />
                         <span className="text-sm font-medium text-gray-900">
                           {u.full_name}
                         </span>

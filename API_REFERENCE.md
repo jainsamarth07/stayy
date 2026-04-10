@@ -920,9 +920,9 @@
   **Response:**
   ```json
   [
-  { "plan_type": "basic", "label": "Basic", "price": 9.99, "max_listings": 3 },
-  { "plan_type": "pro", "label": "Professional", "price": 29.99, "max_listings": 15 },
-  { "plan_type": "premium", "label": "Premium", "price": 59.99, "max_listings": 999 }
+  { "plan_type": "basic", "label": "Basic", "price": 2499.00, "max_listings": 5 },
+  { "plan_type": "pro", "label": "Pro", "price": 6499.00, "max_listings": 25 },
+  { "plan_type": "premium", "label": "Premium", "price": 16499.00, "max_listings": 999999 }
   ]
   ```
   
@@ -959,8 +959,8 @@
   "end_date": "2026-04-16T10:00:00Z",
   "status": "active",
   "auto_renew": true,
-  "amount": 29.99,
-  "max_listings": 15,
+  "amount": 6499.00,
+  "max_listings": 25,
   "created_at": "2026-03-16T10:00:00Z",
   "updated_at": "2026-03-16T10:00:00Z"
   }
@@ -1042,11 +1042,12 @@
   ```json
   {
   "total_users": 150,
-  "total_hosts": 35,
   "total_properties": 80,
+  "active_members": 30,
   "total_bookings": 220,
-  "total_revenue": 45000.00,
-  "active_memberships": 30
+  "completed_bookings": 180,
+  "monthly_revenue": 45000.00,
+  "platform_growth": 0
   }
   ```
   

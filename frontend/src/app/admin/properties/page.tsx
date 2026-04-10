@@ -9,7 +9,7 @@ import Link from "next/link";
 import Button from "@/components/ui/button";
 import { Badge, Spinner } from "@/components/ui/index";
 import { toast } from "@/components/ui/toast";
-import { adminApi, propertyApi, getApiError } from "@/lib/api";
+import { adminApi, getApiError } from "@/lib/api";
 import type { Property } from "@/types";
 
 export default function AdminPropertiesPage() {
@@ -45,7 +45,7 @@ export default function AdminPropertiesPage() {
 
   const handleToggleActive = async (id: string, currentlyActive: boolean) => {
     try {
-      await propertyApi.update(id, { is_active: !currentlyActive });
+      await adminApi.togglePropertyStatus(id);
       setProperties((prev) =>
         prev.map((p) => (p.id === id ? { ...p, is_active: !currentlyActive } : p))
       );
@@ -97,7 +97,7 @@ export default function AdminPropertiesPage() {
                         <div className="h-10 w-14 rounded bg-gray-200 flex-shrink-0" />
                         <div>
                           <p className="text-sm font-medium text-gray-900">{p.title}</p>
-                          <p className="text-xs text-gray-500">{p.city}{p.country ? `, ${p.country}` : ""}</p>
+                          <p className="text-xs text-gray-500">{p.city}</p>
                         </div>
                       </div>
                     </td>

@@ -23,7 +23,7 @@ const plans: MembershipPlan[] = [
   {
     tier: "basic",
     name: "Basic",
-    price: 29,
+    price: 2499,
     listing_limit: 5,
     features: [
       "Up to 5 property listings",
@@ -36,7 +36,7 @@ const plans: MembershipPlan[] = [
   {
     tier: "pro",
     name: "Professional",
-    price: 79,
+    price: 6499,
     listing_limit: 25,
     popular: true,
     features: [
@@ -52,7 +52,7 @@ const plans: MembershipPlan[] = [
   {
     tier: "premium",
     name: "Premium",
-    price: 199,
+    price: 16499,
     listing_limit: "Unlimited",
     features: [
       "Unlimited property listings",

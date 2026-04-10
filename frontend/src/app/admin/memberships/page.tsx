@@ -13,8 +13,9 @@ interface MembershipRow {
   id: string;
   user_name: string;
   email: string;
-  plan: "basic" | "pro" | "premium";
+  plan_type: "basic" | "pro" | "premium";
   status: "active" | "cancelled" | "expired";
+  amount: number;
   started_at: string;
   expires_at: string;
 }
@@ -64,7 +65,7 @@ export default function AdminMembershipsPage() {
           },
           {
             label: "Monthly Revenue",
-            value: `₹${memberships.filter((m) => m.status === "active").reduce((s, m) => s + Number((m as Record<string, unknown>).amount || 0), 0).toLocaleString()}`,
+            value: `₹${memberships.filter((m) => m.status === "active").reduce((s, m) => s + Number(m.amount || 0), 0).toLocaleString()}`,
             color: "text-blue-600",
           },
           {
@@ -110,7 +111,7 @@ export default function AdminMembershipsPage() {
                       <p className="text-xs text-gray-500">{m.email}</p>
                     </td>
                     <td className="px-4 py-3">
-                      <Badge variant={planColor[m.plan]}>{m.plan}</Badge>
+                      <Badge variant={planColor[m.plan_type]}>{m.plan_type}</Badge>
                     </td>
                     <td className="px-4 py-3">
                       <Badge variant={statusColor[m.status]}>{m.status}</Badge>

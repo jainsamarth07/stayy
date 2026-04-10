@@ -36,6 +36,8 @@ class ConversationOut(BaseModel):
     property_id: uuid.UUID
     guest_id: uuid.UUID
     host_id: uuid.UUID
+    property_title: str | None = None
+    other_party_name: str | None = None
     created_at: datetime
     updated_at: datetime
     last_message: MessageOut | None = None

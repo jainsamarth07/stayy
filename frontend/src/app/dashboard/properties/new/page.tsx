@@ -40,17 +40,11 @@ export default function NewPropertyPage() {
     property_type: "apartment",
     address: "",
     city: "",
-    state: "",
-    country: "",
-    zip_code: "",
     latitude: "",
     longitude: "",
     nightly_price: "",
-    bedrooms: "1",
-    bathrooms: "1",
     max_guests: "2",
     amenities: [] as string[],
-    house_rules: "",
     // Hourly config
     enable_hourly: false,
     hourly_rate: "",
@@ -247,31 +241,15 @@ export default function NewPropertyPage() {
               value={form.property_type}
               onChange={(e) => update("property_type", e.target.value)}
             />
-            <div className="grid grid-cols-3 gap-3">
-              <Input
-                label="Bedrooms"
-                type="number"
-                min={0}
-                value={form.bedrooms}
-                onChange={(e) => update("bedrooms", e.target.value)}
-              />
-              <Input
-                label="Bathrooms"
-                type="number"
-                min={1}
-                value={form.bathrooms}
-                onChange={(e) => update("bathrooms", e.target.value)}
-              />
-              <Input
-                label="Max guests"
-                type="number"
-                min={1}
-                max={50}
-                value={form.max_guests}
-                onChange={(e) => update("max_guests", e.target.value)}
-                error={errors.max_guests}
-              />
-            </div>
+            <Input
+              label="Max guests"
+              type="number"
+              min={1}
+              max={50}
+              value={form.max_guests}
+              onChange={(e) => update("max_guests", e.target.value)}
+              error={errors.max_guests}
+            />
 
             {/* Amenities */}
             <div>
@@ -308,32 +286,12 @@ export default function NewPropertyPage() {
               onChange={(e) => update("address", e.target.value)}
               error={errors.address}
             />
-            <div className="grid grid-cols-2 gap-3">
-              <Input
-                label="City"
-                value={form.city}
-                onChange={(e) => update("city", e.target.value)}
-                error={errors.city}
-              />
-              <Input
-                label="State / Province"
-                value={form.state}
-                onChange={(e) => update("state", e.target.value)}
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <Input
-                label="Country"
-                value={form.country}
-                onChange={(e) => update("country", e.target.value)}
-                error={errors.country}
-              />
-              <Input
-                label="Zip code"
-                value={form.zip_code}
-                onChange={(e) => update("zip_code", e.target.value)}
-              />
-            </div>
+            <Input
+              label="City"
+              value={form.city}
+              onChange={(e) => update("city", e.target.value)}
+              error={errors.city}
+            />
             <div className="grid grid-cols-2 gap-3">
               <Input
                 label="Latitude (optional)"
@@ -359,7 +317,7 @@ export default function NewPropertyPage() {
         {step === 3 && (
           <div className="space-y-4">
             <Input
-              label="Nightly price ($)"
+              label="Nightly price (₹)"
               type="number"
               min={1}
               placeholder="100"
@@ -385,7 +343,7 @@ export default function NewPropertyPage() {
               {form.enable_hourly && (
                 <div className="grid grid-cols-3 gap-3 mt-3">
                   <Input
-                    label="Hourly rate ($)"
+                    label="Hourly rate (₹)"
                     type="number"
                     min={1}
                     value={form.hourly_rate}
@@ -408,14 +366,6 @@ export default function NewPropertyPage() {
                 </div>
               )}
             </div>
-
-            <Textarea
-              label="House rules (optional)"
-              placeholder="No smoking, quiet hours after 10pm..."
-              rows={4}
-              value={form.house_rules}
-              onChange={(e) => update("house_rules", e.target.value)}
-            />
           </div>
         )}
 

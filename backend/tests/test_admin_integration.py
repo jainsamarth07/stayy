@@ -174,3 +174,27 @@ async def test_admin_endpoints_forbidden_for_host(
             headers={"Authorization": f"Bearer {host_token}"},
         )
         assert response.status_code == 403, f"Expected 403 for {endpoint}"
+
+
+@pytest.mark.asyncio
+async def test_admin_toggle_property_status(
+    client: AsyncClient, admin_token: str, created_property: dict
+) -> None:
+    """Admin can toggle a property's active status."""
+    prop_id = created_property["id"]
+    response = await client.put(
+        f"/api/v1/admin/properties/{prop_id}/status",
+        headers={"Authorization": f"Bearer {admin_token}"},
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert data["id"] == prop_id
+    assert data["is_active"] is False
+
+    # Toggle back
+    response = await client.put(
+        f"/api/v1/admin/properties/{prop_id}/status",
+        headers={"Authorization": f"Bearer {admin_token}"},
+    )
+    assert response.status_code == 200
+    assert response.json()["is_active"] is True

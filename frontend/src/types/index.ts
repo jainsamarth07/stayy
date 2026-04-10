@@ -10,7 +10,6 @@ export interface User {
   email: string;
   full_name: string;
   phone?: string;
-  avatar_url?: string;
   role: "user" | "host" | "admin";
   is_active: boolean;
   created_at: string;
@@ -54,7 +53,6 @@ export interface Property {
   title: string;
   description: string;
   city: string;
-  country?: string;
   address: string;
   latitude?: number;
   longitude?: number;
@@ -82,7 +80,7 @@ export interface Booking {
   total_price: number;
   booking_type: "nightly" | "hourly";
   hours?: number;
-  status: "pending" | "confirmed" | "cancelled" | "completed" | "rejected" | "checked_in";
+  status: "pending" | "confirmed" | "cancelled" | "completed" | "rejected";
   created_at: string;
   updated_at: string;
   /** Populated by admin endpoints */
