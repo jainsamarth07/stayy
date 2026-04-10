@@ -80,7 +80,7 @@ export interface Booking {
   total_price: number;
   booking_type: "nightly" | "hourly";
   hours?: number;
-  status: "pending" | "confirmed" | "cancelled" | "completed" | "rejected";
+  status: "pending" | "confirmed" | "checked_in" | "cancelled" | "completed" | "rejected";
   created_at: string;
   updated_at: string;
   /** Populated by admin endpoints */
