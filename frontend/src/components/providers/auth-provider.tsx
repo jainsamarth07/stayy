@@ -25,6 +25,11 @@ export function useAuth() {
  * Hydrates the Zustand auth store from BetterAuth's useSession hook.
  * This bridges BetterAuth sessions with all existing components that
  * depend on useAuthStore.
+ *
+ * NOTE: Does NOT block rendering — children are always rendered so that
+ * public pages (homepage, property listings, etc.) appear immediately.
+ * Protected routes use the separate <ProtectedRoute> component to gate
+ * access while the session is still loading.
  */
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const { data: session, isPending } = useSession();
@@ -86,14 +91,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [session, isPending, setSession, setLoading]);
 
-  if (isPending) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Spinner size="lg" />
-      </div>
-    );
-  }
-
+  // Never block rendering — let public pages show immediately.
+  // ProtectedRoute handles auth gating for routes that require login.
   return (
     <AuthContext.Provider
       value={{ isAuthenticated: !!session?.user, isLoading: isPending }}

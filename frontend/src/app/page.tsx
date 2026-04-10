@@ -32,6 +32,7 @@ const CATEGORIES = [
 
 export default function HomePage() {
   const [featured, setFeatured] = useState<Property[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [searchFilters, setSearchFilters] = useState<SearchFilters>({
     location: "",
@@ -49,6 +50,8 @@ export default function HomePage() {
         setFeatured(Array.isArray(data) ? data : data.items || []);
       } catch {
         setFeatured([]);
+      } finally {
+        setIsLoading(false);
       }
     };
     loadFeatured();
@@ -101,7 +104,7 @@ export default function HomePage() {
 
       {/* Properties grid */}
       <section className="mx-auto max-w-container px-4 sm:px-8 md:px-10 xl:px-20 pt-8 pb-12">
-        {featured.length === 0 ? (
+        {isLoading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-6">
             {Array.from({ length: 12 }).map((_, i) => (
               <div key={i} className="animate-pulse">
@@ -113,6 +116,11 @@ export default function HomePage() {
                 </div>
               </div>
             ))}
+          </div>
+        ) : featured.length === 0 ? (
+          <div className="text-center py-16">
+            <h2 className="text-xl font-semibold text-neutral-700">No stays found</h2>
+            <p className="mt-2 text-neutral-500">Check back soon — new properties are added regularly.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-x-6 gap-y-10">
