@@ -5,6 +5,7 @@
  */
 import "@testing-library/jest-dom/vitest";
 import { cleanup } from "@testing-library/react";
+import React from "react";
 import { afterEach, vi } from "vitest";
 
 // Cleanup after each test
@@ -26,21 +27,29 @@ vi.mock("next/navigation", () => ({
 }));
 
 // Mock next/image
+// Uses React.createElement instead of JSX so that vi.mock hoisting works
+// before the JSX transform is applied (Vite 6 + tsconfig jsx:preserve limitation).
 vi.mock("next/image", () => ({
-  default: (props: Record<string, unknown>) => {
-    // eslint-disable-next-line @next/next/no-img-element, jsx-a11y/alt-text
-    const { fill, priority, ...rest } = props;
-    return <img {...rest} />;
+  // eslint-disable-next-line @next/next/no-img-element, jsx-a11y/alt-text
+  default: function MockImage(props: Record<string, unknown>) {
+    const { fill: _fill, priority: _priority, ...rest } = props;
+    return React.createElement("img", rest as React.ImgHTMLAttributes<HTMLImageElement>);
   },
 }));
 
 // Mock next/link
 vi.mock("next/link", () => ({
-  default: ({ children, href, ...rest }: { children: React.ReactNode; href: string }) => (
-    <a href={href} {...rest}>
-      {children}
-    </a>
-  ),
+  default: function MockLink({
+    children,
+    href,
+    ...rest
+  }: {
+    children: React.ReactNode;
+    href: string;
+    [key: string]: unknown;
+  }) {
+    return React.createElement("a", { href, ...(rest as object) }, children);
+  },
 }));
 
 // Mock IntersectionObserver
