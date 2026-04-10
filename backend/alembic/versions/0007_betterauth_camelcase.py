@@ -46,11 +46,26 @@ _RENAMES = [
 ]
 
 
+def _column_exists(conn, table: str, column: str) -> bool:
+    result = conn.execute(
+        __import__("sqlalchemy").text(
+            "SELECT 1 FROM information_schema.columns "
+            "WHERE table_name = :t AND column_name = :c"
+        ),
+        {"t": table, "c": column},
+    )
+    return result.fetchone() is not None
+
+
 def upgrade() -> None:
+    conn = op.get_bind()
     for table, old, new in _RENAMES:
-        op.alter_column(table, old, new_column_name=new)
+        if _column_exists(conn, table, old):
+            op.alter_column(table, old, new_column_name=new)
 
 
 def downgrade() -> None:
+    conn = op.get_bind()
     for table, old, new in reversed(_RENAMES):
-        op.alter_column(table, new, new_column_name=old)
+        if _column_exists(conn, table, new):
+            op.alter_column(table, new, new_column_name=old)
