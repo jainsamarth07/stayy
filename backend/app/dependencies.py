@@ -11,7 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.security import decode_token
 from app.database import get_db
 from app.models.betterauth import BetterAuthSession, BetterAuthUser
-from app.models.user import User
+from app.models.user import HostProfile, User
 
 logger = logging.getLogger(__name__)
 
@@ -57,6 +57,17 @@ async def _auth_via_betterauth(
     else:
         if ba_user.role and user.role != ba_user.role:
             user.role = ba_user.role
+            await db.flush()
+
+    # Auto-create HostProfile for host-role users if one doesn't exist yet.
+    # This handles both new BetterAuth host registrations and existing host
+    # users whose HostProfile was never created.
+    if user.role in ("host", "admin"):
+        profile_result = await db.execute(
+            select(HostProfile).where(HostProfile.user_id == user.id)
+        )
+        if profile_result.scalar_one_or_none() is None:
+            db.add(HostProfile(user_id=user.id))
             await db.flush()
 
     return user
