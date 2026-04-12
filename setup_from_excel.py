@@ -1,4 +1,4 @@
-r"""
+"""
 Read Project_Files.xlsx and recreate the entire project structure.
 
 This script reads all 3 sheets (Frontend, Backend, Other Files) from the
@@ -7,7 +7,7 @@ preserving directory structure.
 
 Usage:
     python setup_from_excel.py                          # creates in current directory
-    python setup_from_excel.py --target C:\my\project   # creates in specified directory
+    python setup_from_excel.py --target C:\\my\\project   # creates in specified directory
     python setup_from_excel.py --excel path/to/file.xlsx # use a different Excel file
 """
 

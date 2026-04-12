@@ -242,6 +242,33 @@ async def get_messages(
     return list(result.scalars().all()), total
 
 
+async def mark_conversation_read(
+    db: AsyncSession, conversation_id: uuid.UUID, user: User
+) -> int:
+    """Mark all unread messages in a conversation as read for the current user.
+
+    Only messages sent by the *other* party are touched (you cannot mark your
+    own messages as read).  Returns the number of messages updated.
+    """
+    from sqlalchemy import update  # local import to keep top-level imports minimal
+
+    await _get_conversation_for_user(db, conversation_id, user.id)
+
+    result = await db.execute(
+        update(Message)
+        .where(
+            and_(
+                Message.conversation_id == conversation_id,
+                Message.sender_id != user.id,
+                Message.is_read == False,  # noqa: E712
+            )
+        )
+        .values(is_read=True)
+    )
+    await db.flush()
+    return result.rowcount
+
+
 async def mark_message_read(db: AsyncSession, message_id: uuid.UUID, user: User) -> Message:
     """Mark a message as read."""
     result = await db.execute(select(Message).where(Message.id == message_id))

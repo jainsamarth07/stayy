@@ -16,7 +16,7 @@ export default function PropertyCard({ property, showHost = true }: PropertyCard
   const [isFavorited, setIsFavorited] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const images = property.images?.length ? property.images : [];
-  const mainImage = images[imgIdx]?.image_url || "/placeholder-property.jpg";
+  const mainImage = images[imgIdx]?.image_url || "/placeholder-property.svg";
 
   const prevImage = (e: React.MouseEvent) => {
     e.preventDefault();

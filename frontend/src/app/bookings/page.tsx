@@ -87,7 +87,7 @@ export default function BookingsPage() {
                     {/* Property image */}
                     <div className="w-full sm:w-40 h-28 rounded-lg overflow-hidden bg-gray-100 shrink-0">
                       <img
-                        src="/placeholder-property.jpg"
+                        src="/placeholder-property.svg"
                         alt="Property"
                         className="h-full w-full object-cover"
                       />

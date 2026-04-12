@@ -20,9 +20,12 @@ export default function DashboardPropertiesPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Wait for backendId — without it the search has no host_id filter and
+    // returns all properties, causing a visible data jump when it arrives.
+    if (!user?.backendId) return;
     const load = async () => {
       try {
-        const res = await propertyApi.search(user?.backendId ? { host_id: user.backendId } : {});
+        const res = await propertyApi.search({ host_id: user.backendId! });
         const data = res.data;
         setProperties(Array.isArray(data) ? data : data.items || []);
       } catch {
@@ -76,7 +79,7 @@ export default function DashboardPropertiesPage() {
               {/* Thumbnail */}
               <div className="w-full sm:w-36 h-24 rounded-lg overflow-hidden bg-gray-100 shrink-0">
                 <img
-                  src={property.images?.[0]?.image_url || "/placeholder-property.jpg"}
+                  src={property.images?.[0]?.image_url || "/placeholder-property.svg"}
                   alt={property.title}
                   className="h-full w-full object-cover"
                 />

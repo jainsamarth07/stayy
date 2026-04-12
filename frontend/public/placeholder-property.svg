@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600">
+  <rect width="800" height="600" fill="#f3f4f6"/>
+  <!-- House body -->
+  <rect x="260" y="310" width="280" height="200" rx="4" fill="#d1d5db"/>
+  <!-- Roof -->
+  <polygon points="240,320 400,180 560,320" fill="#9ca3af"/>
+  <!-- Door -->
+  <rect x="365" y="420" width="70" height="90" rx="4" fill="#6b7280"/>
+  <!-- Windows -->
+  <rect x="285" y="360" width="65" height="55" rx="4" fill="#e5e7eb"/>
+  <rect x="450" y="360" width="65" height="55" rx="4" fill="#e5e7eb"/>
+  <!-- Chimney -->
+  <rect x="460" y="200" width="30" height="60" fill="#9ca3af"/>
+  <!-- Label -->
+  <text x="400" y="555" font-family="system-ui,sans-serif" font-size="18" fill="#9ca3af" text-anchor="middle">No image available</text>
+</svg>

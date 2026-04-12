@@ -149,7 +149,7 @@ export default function BookingDetailPage() {
             <div className="rounded-xl border border-gray-200 overflow-hidden">
               <div className="h-48 bg-gray-100">
                 <img
-                  src={property?.images?.[0]?.image_url || "/placeholder-property.jpg"}
+                  src={property?.images?.[0]?.image_url || "/placeholder-property.svg"}
                   alt={property?.title || "Property"}
                   className="h-full w-full object-cover"
                 />

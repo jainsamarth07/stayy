@@ -83,8 +83,11 @@ export const propertyApi = {
   uploadImage: (id: string, file: File, isPrimary = false) => {
     const formData = new FormData();
     formData.append("file", file);
+    // Explicitly delete Content-Type so the browser auto-sets multipart/form-data
+    // with the correct boundary. The instance default "application/json" would
+    // otherwise override it and FastAPI would fail to parse the multipart body.
     return api.post(`/properties/${id}/images?is_primary=${isPrimary}`, formData, {
-      headers: { "Content-Type": "multipart/form-data" },
+      headers: { "Content-Type": undefined },
     });
   },
 
@@ -116,6 +119,8 @@ export const messageApi = {
     api.get(`/conversations/${conversationId}/messages`, { params: { page } }),
   sendMessage: (conversationId: string, content: string) =>
     api.post(`/conversations/${conversationId}/messages`, { content }),
+  markConversationRead: (conversationId: string) =>
+    api.put(`/conversations/${conversationId}/read`),
   markRead: (messageId: string) => api.put(`/messages/${messageId}/read`),
 };
 

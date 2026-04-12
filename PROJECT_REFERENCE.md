@@ -1,532 +1,558 @@
-# StayNest — Complete Project Reference
-  
-  > **Commission-free vacation rental platform.** Hosts keep 100% of booking revenue; the platform monetizes through membership subscriptions.
-  
-  ---
-  
-  ## Table of Contents
-  
-  1. [Project Overview](#1-project-overview)
-  2. [Infrastructure & DevOps](#2-infrastructure--devops)
-  3. [Backend — Python / FastAPI](#3-backend--python--fastapi)
-  - 3.1 [Application Factory & Entry Point](#31-application-factory--entry-point)
-  - 3.2 [Configuration](#32-configuration)
-  - 3.3 [Database Layer](#33-database-layer)
-  - 3.4 [Dependencies (Auth Guards)](#34-dependencies-auth-guards)
-  - 3.5 [Core Utilities](#35-core-utilities)
-  - 3.6 [Models (SQLAlchemy ORM)](#36-models-sqlalchemy-orm)
-  - 3.7 [Schemas (Pydantic)](#37-schemas-pydantic)
-  - 3.8 [Services (Business Logic)](#38-services-business-logic)
-  - 3.9 [API Routes (v1)](#39-api-routes-v1)
-  - 3.10 [Background Tasks (Celery)](#310-background-tasks-celery)
-  - 3.11 [Database Migrations (Alembic)](#311-database-migrations-alembic)
-  - 3.12 [Tests](#312-tests)
-  4. [Frontend — Next.js / React / TypeScript](#4-frontend--nextjs--react--typescript)
-  - 4.1 [App Shell & Middleware](#41-app-shell--middleware)
-  - 4.2 [API Client](#42-api-client)
-  - 4.3 [TypeScript Types](#43-typescript-types)
-  - 4.4 [Zustand Stores](#44-zustand-stores)
-  - 4.5 [Custom Hooks](#45-custom-hooks)
-  - 4.6 [Components — Layout](#46-components--layout)
-  - 4.7 [Components — Property](#47-components--property)
-  - 4.8 [Components — Providers](#48-components--providers)
-  - 4.9 [Components — UI Primitives](#49-components--ui-primitives)
-  - 4.10 [Pages — Authentication](#410-pages--authentication)
-  - 4.11 [Pages — Properties (Public)](#411-pages--properties-public)
-  - 4.12 [Pages — Bookings (Guest)](#412-pages--bookings-guest)
-  - 4.13 [Pages — Messages](#413-pages--messages)
-  - 4.14 [Pages — Profile](#414-pages--profile)
-  - 4.15 [Pages — Host Dashboard](#415-pages--host-dashboard)
-  - 4.16 [Pages — Admin Panel](#416-pages--admin-panel)
-  - 4.17 [Root App Pages](#417-root-app-pages)
-  
-  ---
-  
-  ## 1. Project Overview
-  
-  **StayNest** is a full-stack vacation rental marketplace built with:
-  
-  | Layer | Technology |
-  |-------|-----------|
-  | Backend API | Python 3.12+, FastAPI, SQLAlchemy 2 (async), Pydantic v2 |
-  | Database | PostgreSQL 16 (async via `asyncpg`) |
-  | Cache / Broker | Redis 7 |
-  | Task Queue | Celery |
-  | Object Storage | MinIO (S3-compatible) |
-  | Frontend | Next.js 14 (App Router), React 18, TypeScript, Tailwind CSS |
-  | State Mgmt | Zustand |
-  | Auth | JWT (access + refresh tokens), Argon2 password hashing |
-  | Containerisation | Docker Compose |
-  | Migrations | Alembic (async) |
-  
-  **Key Business Features:**
-  - User registration with guest / host / admin roles
-  - Property CRUD with image upload, search & filtering
-  - Nightly **and** hourly booking system
-  - Guest ↔ Host messaging system
-  - Review & rating system
-  - Tiered membership plans (Basic / Pro / Premium) for hosts
-  - Admin dashboard with platform-wide analytics
-  - Rate limiting (Redis-backed)
-  - Background email and membership renewal tasks
-  
-  ---
-  
-  ## 2. Infrastructure & DevOps
-  
-  ### `docker-compose.yml`
-  
-  Defines six services:
-  
-  | Service | Image / Build | Port | Purpose |
-  |---------|--------------|------|---------|
-  | `api` | `./backend/Dockerfile` | 8000 | FastAPI backend |
-  | `celery-worker` | `./backend/Dockerfile` | — | Celery background worker |
-  | `db` | `postgres:16-alpine` | 5432 | PostgreSQL database |
-  | `redis` | `redis:7-alpine` | 6379 | Cache + Celery broker |
-  | `minio` | `minio/minio:latest` | 9000, 9001 | S3-compatible object store |
-  | `frontend` | `./frontend/Dockerfile` | 3000 | Next.js frontend |
-  
-  **Volumes:** `postgres_data`, `redis_data`, `minio_data` for persistence.
-  
-  ### `setup.sh` / `setup.ps1`
-  
-  Shell scripts for bootstrapping the development environment (creating `.env` files, running migrations, seeding data).
-  
-  ### `generate_excel.py` / `setup_from_excel.py`
-  
-  Utility scripts for generating/loading seed data from Excel spreadsheets.
-  
-  ---
-  
-  ## 3. Backend — Python / FastAPI
-  
-  ### 3.1 Application Factory & Entry Point
-  
-  **File:** `backend/app/main.py`
-  
-  | Symbol | Type | Description |
-  |--------|------|-------------|
-  | `lifespan(app)` | Async context manager | Application lifespan handler for startup/shutdown events. |
-  | `create_app()` | Function → `FastAPI` | Factory that creates and configures the FastAPI instance: sets title/version from config, adds CORS middleware (origins from settings), mounts the v1 API router at `/api/v1`, and adds a `/health` endpoint. |
-  | `app` | Module-level instance | The main FastAPI application instance created by `create_app()`. |
-  
-  **Health endpoint:**
-  - `GET /health` → `{"status": "healthy", "version": "..."}` — used by Docker healthchecks and monitoring.
-  
-  ---
-  
-  ### 3.2 Configuration
-  
-  **File:** `backend/app/config.py`
-  
-  **Class: `Settings(BaseSettings)`** — 12-factor compliant configuration loaded from environment variables / `.env`.
-  
-  | Setting | Default | Description |
-  |---------|---------|-------------|
-  | `APP_ENV` | `"development"` | Current environment |
-  | `DEBUG` | `False` | Debug mode flag |
-  | `APP_TITLE` | `"StayNest API"` | Shown in OpenAPI docs |
-  | `APP_VERSION` | `"0.1.0"` | API version |
-  | `DATABASE_URL` | `postgresql+asyncpg://...` | Async PostgreSQL connection string |
-  | `DATABASE_ECHO` | `False` | SQLAlchemy SQL echo |
-  | `REDIS_URL` | `redis://localhost:6379/0` | Redis connection for caching/rate limiting |
-  | `JWT_SECRET_KEY` | `"CHANGE-ME-..."` | Secret for signing JWTs |
-  | `JWT_ALGORITHM` | `"HS256"` | JWT signing algorithm |
-  | `JWT_ACCESS_TOKEN_EXPIRE_MINUTES` | `30` | Access token TTL |
-  | `JWT_REFRESH_TOKEN_EXPIRE_DAYS` | `7` | Refresh token TTL |
-  | `S3_ENDPOINT_URL` | `http://localhost:9000` | MinIO/S3 endpoint |
-  | `S3_ACCESS_KEY_ID` | `"minioadmin"` | S3 access key |
-  | `S3_SECRET_ACCESS_KEY` | `"minioadmin"` | S3 secret key |
-  | `S3_BUCKET_NAME` | `"staynest-images"` | Bucket for image uploads |
-  | `S3_REGION` | `"us-east-1"` | S3 region |
-  | `CORS_ORIGINS` | `["http://localhost:3000"]` | Allowed CORS origins |
-  | `CELERY_BROKER_URL` | `redis://localhost:6379/1` | Celery broker URL |
-  | `RATE_LIMIT_PER_MINUTE` | `60` | Requests per minute per client |
-  
-  **Singleton:** `settings = Settings()` — module-level instance used across the app.
-  
-  ---
-  
-  ### 3.3 Database Layer
-  
-  **File:** `backend/app/database.py`
-  
-  | Symbol | Type | Description |
-  |--------|------|-------------|
-  | `engine` | `AsyncEngine` | SQLAlchemy async engine with connection pooling (`pool_size=20`, `max_overflow=10`, `pool_pre_ping=True`). |
-  | `async_session_factory` | `async_sessionmaker` | Factory producing `AsyncSession` instances with `expire_on_commit=False`. |
-  | `Base` | `DeclarativeBase` | SQLAlchemy declarative base class — all models inherit from this. |
-  | `get_db()` | Async generator → `AsyncSession` | FastAPI dependency that yields a database session, auto-commits on success, rolls back on error, and closes on exit. |
-  
-  ---
-  
-  ### 3.4 Dependencies (Auth Guards)
-  
-  **File:** `backend/app/dependencies.py`
-  
-  | Dependency | Returns | Description |
-  |-----------|---------|-------------|
-  | `get_current_user(credentials, db)` | `User` | Extracts the JWT bearer token, decodes it, validates the `"access"` type, looks up the user by `sub` claim, and verifies the user is active. Raises 401 on failure. |
-  | `require_host(current_user)` | `User` | Ensures the current user has `"host"` or `"admin"` role. Raises 403 otherwise. |
-  | `require_admin(current_user)` | `User` | Ensures the current user has `"admin"` role. Raises 403 otherwise. |
-  
-  ---
-  
-  ### 3.5 Core Utilities
-  
-  #### `backend/app/core/security.py` — JWT & Password Hashing
-  
-  | Function | Parameters | Returns | Description |
-  |----------|-----------|---------|-------------|
-  | `hash_password(password)` | `str` | `str` | Hashes a plaintext password using **Argon2** via `passlib`. |
-  | `verify_password(plain_password, hashed_password)` | `str, str` | `bool` | Verifies a plaintext password against its Argon2 hash. |
-  | `create_access_token(data, expires_delta?)` | `dict, timedelta?` | `str` | Creates a JWT access token with `"type": "access"` claim. Default expiry: 30 minutes. |
-  | `create_refresh_token(data)` | `dict` | `str` | Creates a JWT refresh token with `"type": "refresh"` claim. Expiry: 7 days. |
-  | `decode_token(token)` | `str` | `dict \| None` | Decodes and validates a JWT. Returns the payload dict or `None` on failure. |
-  
-  #### `backend/app/core/exceptions.py` — Custom HTTP Exceptions
-  
-  | Exception | HTTP Status | Default Detail |
-  |-----------|-------------|----------------|
-  | `NotFoundError` | 404 | `"Resource not found"` |
-  | `ForbiddenError` | 403 | `"Access forbidden"` |
-  | `ConflictError` | 409 | `"Resource conflict"` |
-  | `BadRequestError` | 400 | `"Bad request"` |
-  | `UnauthorizedError` | 401 | `"Invalid credentials"` (includes `WWW-Authenticate: Bearer` header) |
-  | `MembershipRequiredError` | 402 | `"Active membership required to perform this action"` |
-  
-  #### `backend/app/core/permissions.py` — Role-Based Access Control
-  
-  | Symbol | Type | Description |
-  |--------|------|-------------|
-  | `UserRole` | `StrEnum` | Enum with `USER`, `HOST`, `ADMIN` values. |
-  | `require_role(*roles)` | Decorator | Decorator factory that restricts an endpoint to specific roles. Checks `kwargs["current_user"].role` against the allowed roles. Raises 401 if no user, 403 if insufficient permissions. |
-  
-  #### `backend/app/core/rate_limiter.py` — Redis-Backed Rate Limiting
-  
-  | Function | Parameters | Description |
-  |----------|-----------|-------------|
-  | `rate_limit_check(request, limit=60)` | `Request, int` | Sliding-window rate limiter using Redis `INCR` + `EXPIRE`. Key format: `rate_limit:{client_ip}:{path}`. Returns 429 if limit exceeded. Falls back to no-op if Redis is unavailable. |
-  
-  ---
-  
-  ### 3.6 Models (SQLAlchemy ORM)
-  
-  All models are imported via `backend/app/models/__init__.py`.
-  
-  #### `User` — `backend/app/models/user.py`
-  
-  | Column | Type | Constraints | Description |
-  |--------|------|-------------|-------------|
-  | `id` | `UUID` | PK, auto-generated | Unique user identifier |
-  | `email` | `String(255)` | Unique, indexed | User's email address |
-  | `hashed_password` | `String(255)` | Not null | Argon2 password hash |
-  | `full_name` | `String(255)` | Not null | Display name |
-  | `phone` | `String(20)` | Nullable | Phone number |
-  | `role` | `String(20)` | Default `"user"` | One of `user`, `host`, `admin` |
-  | `is_active` | `Boolean` | Default `True` | Account active flag |
-  | `created_at` | `DateTime(tz)` | Auto-set | Registration timestamp |
-  | `updated_at` | `DateTime(tz)` | Auto-updated | Last update timestamp |
-  
-  **Relationships:** `host_profile` (1:1 → HostProfile), `properties` (1:many → Property), `bookings_as_guest` (1:many → Booking), `reviews` (1:many → Review).
-  
-  #### `HostProfile` — `backend/app/models/user.py`
-  
-  Extended profile for hosts with business information.
-  
-  | Column | Type | Description |
-  |--------|------|-------------|
-  | `id` | `UUID` | Primary key |
-  | `user_id` | `UUID` | FK → `users.id` (unique, cascade delete) |
-  | `business_name` | `String(255)` | Optional business name |
-  | `bio` | `Text` | Optional biography |
-  | `phone_visible` | `Boolean` | Whether phone is publicly visible |
-  | `is_verified` | `Boolean` | Host verification status |
-  | `avg_rating` | `Float` | Computed average rating |
-  | `total_reviews` | `Integer` | Total review count |
-  | `created_at` | `DateTime(tz)` | Profile creation date |
-  
-  **Relationships:** `user` (→ User), `membership` (1:1 → Membership).
-  
-  #### `Property` — `backend/app/models/property.py`
-  
-  | Column | Type | Description |
-  |--------|------|-------------|
-  | `id` | `UUID` | Primary key |
-  | `host_id` | `UUID` | FK → `users.id` (indexed) |
-  | `title` | `String(255)` | Listing title |
-  | `description` | `Text` | Full description |
-  | `city` | `String(100)` | City (indexed for search) |
-  | `address` | `String(500)` | Full address |
-  | `latitude` / `longitude` | `Float` | Geolocation (nullable) |
-  | `price_per_night` | `Float` | Nightly price |
-  | `max_guests` | `Integer` | Maximum guest capacity |
-  | `amenities` | `JSON` | List of amenity strings |
-  | `is_active` | `Boolean` | Listing active flag |
-  | `hourly_enabled` | `Boolean` | Whether hourly booking is available |
-  | `created_at` / `updated_at` | `DateTime(tz)` | Timestamps |
-  
-  **Relationships:** `host`, `images` (1:many → PropertyImage), `hourly_config` (1:1 → HourlyBookingConfig), `bookings`, `reviews`.
-  
-  #### `PropertyImage` — `backend/app/models/property.py`
-  
-  | Column | Type | Description |
-  |--------|------|-------------|
-  | `id` | `UUID` | Primary key |
-  | `property_id` | `UUID` | FK → `properties.id` |
-  | `image_url` | `String(1000)` | S3 image URL |
-  | `is_primary` | `Boolean` | Primary image flag |
-  | `sort_order` | `Integer` | Display order |
-  
-  #### `HourlyBookingConfig` — `backend/app/models/property.py`
-  
-  | Column | Type | Description |
-  |--------|------|-------------|
-  | `id` | `UUID` | Primary key |
-  | `property_id` | `UUID` | FK → `properties.id` (unique) |
-  | `hourly_price` | `Float` | Price per hour |
-  | `min_hours` | `Integer` | Minimum booking hours (default: 1) |
-  | `max_hours` | `Integer` | Maximum booking hours (default: 12) |
-  | `available_from` | `Time` | Start of availability window (default: 08:00) |
-  | `available_to` | `Time` | End of availability window (default: 22:00) |
-  
-  #### `Booking` — `backend/app/models/booking.py`
-  
-  | Column | Type | Description |
-  |--------|------|-------------|
-  | `id` | `UUID` | Primary key |
-  | `property_id` | `UUID` | FK → `properties.id` |
-  | `guest_id` | `UUID` | FK → `users.id` |
-  | `host_id` | `UUID` | FK → `users.id` |
-  | `check_in` / `check_out` | `DateTime(tz)` | Booking dates |
-  | `total_price` | `Float` | Computed total price |
-  | `booking_type` | `String(20)` | `"nightly"` or `"hourly"` |
-  | `hours` | `Integer` | Hours (for hourly bookings) |
-  | `status` | `String(20)` | `pending`, `confirmed`, `cancelled`, `completed`, `rejected` |
-  | `created_at` / `updated_at` | `DateTime(tz)` | Timestamps |
-  
-  **Enums:** `BookingStatus` (pending, confirmed, cancelled, completed, rejected), `BookingType` (nightly, hourly).
-  
-  **Relationships:** `property`, `guest`, `host`, `review` (1:1).
-  
-  #### `Membership` — `backend/app/models/membership.py`
-  
-  | Column | Type | Description |
-  |--------|------|-------------|
-  | `id` | `UUID` | Primary key |
-  | `host_id` | `UUID` | FK → `host_profiles.id` (unique) |
-  | `plan_type` | `String(20)` | `basic`, `pro`, `premium` |
-  | `start_date` / `end_date` | `DateTime(tz)` | Subscription period |
-  | `status` | `String(20)` | `active`, `cancelled`, `expired`, `past_due` |
-  | `auto_renew` | `Boolean` | Auto-renewal flag |
-  | `payment_ref` | `String(255)` | Payment gateway reference |
-  | `amount` | `Float` | Subscription amount |
-  | `max_listings` | `Integer` | Maximum allowed listings |
-  | `created_at` / `updated_at` | `DateTime(tz)` | Timestamps |
-  
-  **Enums:** `MembershipPlan` (basic, pro, premium), `MembershipStatus` (active, cancelled, expired, past_due).
-  
-  **Plan Configuration (`PLAN_CONFIG`):**
-  | Plan | Price | Max Listings |
-  |------|-------|-------------|
-  | Basic | $29.00/month | 5 |
-  | Pro | $79.00/month | 25 |
-  | Premium | $199.00/month | Unlimited |
-  
-  #### `Conversation` — `backend/app/models/message.py`
-  
-  | Column | Type | Description |
-  |--------|------|-------------|
-  | `id` | `UUID` | Primary key |
-  | `property_id` | `UUID` | FK → `properties.id` |
-  | `guest_id` | `UUID` | FK → `users.id` |
-  | `host_id` | `UUID` | FK → `users.id` |
-  | `created_at` / `updated_at` | `DateTime(tz)` | Timestamps |
-  
-  **Relationships:** `messages` (1:many → Message, ordered by `created_at`), `property`, `guest`, `host`.
-  
-  #### `Message` — `backend/app/models/message.py`
-  
-  | Column | Type | Description |
-  |--------|------|-------------|
-  | `id` | `UUID` | Primary key |
-  | `conversation_id` | `UUID` | FK → `conversations.id` |
-  | `sender_id` | `UUID` | FK → `users.id` |
-  | `content` | `Text` | Message body |
-  | `is_read` | `Boolean` | Read receipt flag |
-  | `created_at` | `DateTime(tz)` | Sent timestamp |
-  
-  #### `Review` — `backend/app/models/review.py`
-  
-  | Column | Type | Description |
-  |--------|------|-------------|
-  | `id` | `UUID` | Primary key |
-  | `booking_id` | `UUID` | FK → `bookings.id` (unique — one review per booking) |
-  | `property_id` | `UUID` | FK → `properties.id` |
-  | `reviewer_id` | `UUID` | FK → `users.id` |
-  | `rating` | `Float` | 1.0–5.0 star rating |
-  | `comment` | `Text` | Optional review text |
-  | `created_at` | `DateTime(tz)` | Review timestamp |
-  
-  ---
-  
-  ### 3.7 Schemas (Pydantic)
-  
-  #### User Schemas — `backend/app/schemas/user.py`
-  
-  | Schema | Purpose | Key Fields |
-  |--------|---------|------------|
-  | `UserRegister` | Registration request | `email` (EmailStr), `password` (8–128 chars), `full_name`, `phone?`, `role` (user\|host) |
-  | `UserLogin` | Login request | `email`, `password` |
-  | `TokenResponse` | JWT token pair response | `access_token`, `refresh_token`, `token_type` |
-  | `TokenRefresh` | Token refresh request | `refresh_token` |
-  | `UserOut` | Public user response | `id`, `email`, `full_name`, `phone?`, `role`, `is_active`, `created_at` |
-  | `UserUpdate` | Profile update request | `full_name?`, `phone?` |
-  | `HostProfileOut` | Host profile response | `id`, `user_id`, `business_name?`, `bio?`, `phone_visible`, `is_verified`, `avg_rating`, `total_reviews` |
-  | `HostProfileUpdate` | Host profile update | `business_name?`, `bio?`, `phone_visible?` |
-  
-  #### Property Schemas — `backend/app/schemas/property.py`
-  
-  | Schema | Purpose | Key Fields |
-  |--------|---------|------------|
-  | `PropertyCreate` | Create listing | `title` (3–255), `description` (min 10), `city`, `address`, `price_per_night` (>0), `max_guests` (1–50), `amenities?`, `latitude?`, `longitude?` |
-  | `PropertyUpdate` | Partial update | All fields optional from `PropertyCreate` plus `is_active?` |
-  | `PropertyImageOut` | Image response | `id`, `image_url`, `is_primary`, `sort_order` |
-  | `HourlyBookingConfigOut` | Hourly config response | `id`, `hourly_price`, `min_hours`, `max_hours`, `available_from`, `available_to` |
-  | `HourlyBookingConfigUpdate` | Set/update hourly config | `hourly_price` (>0), `min_hours`, `max_hours` (1–24), `available_from`, `available_to` |
-  | `PropertyOut` | Full listing response | All property fields + `images[]` + `hourly_config?` |
-  | `PropertySearchParams` | Search query params | `city?`, `min_price?`, `max_price?`, `max_guests?`, `amenities?`, `hourly_available?`, `host_id?`, `page`, `page_size` |
-  
-  #### Booking Schemas — `backend/app/schemas/booking.py`
-  
-  | Schema | Purpose | Key Fields |
-  |--------|---------|------------|
-  | `BookingCreate` | Create booking | `property_id`, `check_in`, `check_out`, `booking_type` (nightly\|hourly), `hours?` |
-  | `BookingStatusUpdate` | Status change | `status` (confirmed\|cancelled\|completed\|rejected) |
-  | `BookingOut` | Booking response | All booking fields |
-  | `PaginatedBookings` | Paginated list | `items[]`, `total`, `page`, `page_size` |
-  
-  #### Membership Schemas — `backend/app/schemas/membership.py`
-  
-  | Schema | Purpose | Key Fields |
-  |--------|---------|------------|
-  | `MembershipPlanOut` | Plan description | `plan_type`, `label`, `price`, `max_listings` |
-  | `MembershipSubscribeRequest` | Subscribe request | `plan_type` (basic\|pro\|premium), `payment_token` |
-  | `MembershipOut` | Membership response | All membership fields |
-  | `MembershipWebhookPayload` | Payment webhook | `event_type`, `payment_ref`, `status`, `metadata?` |
-  
-  #### Message Schemas — `backend/app/schemas/message.py`
-  
-  | Schema | Purpose | Key Fields |
-  |--------|---------|------------|
-  | `ConversationCreate` | Start conversation | `property_id`, `message` (1–5000 chars) |
-  | `MessageCreate` | Send message | `content` (1–5000 chars) |
-  | `MessageOut` | Message response | `id`, `conversation_id`, `sender_id`, `content`, `is_read`, `created_at` |
-  | `ConversationOut` | Conversation response | `id`, `property_id`, `guest_id`, `host_id`, `last_message?`, `unread_count` |
-  | `PaginatedMessages` | Paginated messages | `items[]`, `total`, `page`, `page_size` |
-  
-  #### Review Schemas — `backend/app/schemas/review.py`
-  
-  | Schema | Purpose | Key Fields |
-  |--------|---------|------------|
-  | `ReviewCreate` | Submit review | `booking_id`, `rating` (1.0–5.0), `comment?` (max 2000) |
-  | `ReviewOut` | Review response | `id`, `booking_id`, `property_id`, `reviewer_id`, `rating`, `comment?`, `created_at` |
-  | `PaginatedReviews` | Paginated reviews | `items[]`, `total`, `page`, `page_size` |
-  
-  ---
-  
-  ### 3.8 Services (Business Logic)
-  
-  #### Auth Service — `backend/app/services/auth_service.py`
-  
-  | Function | Parameters | Returns | Description |
-  |----------|-----------|---------|-------------|
-  | `register_user(db, data)` | `AsyncSession, UserRegister` | `User` | Registers a new user. Checks for duplicate email (raises `ConflictError`). If role is `"host"`, also creates a `HostProfile`. Hashes the password with Argon2. |
-  | `authenticate_user(db, email, password)` | `AsyncSession, str, str` | `TokenResponse` | Authenticates via email+password. Verifies the password hash, checks the user is active, and returns a JWT access+refresh token pair. Raises `UnauthorizedError` on failure. |
-  | `refresh_access_token(db, refresh_token_str)` | `AsyncSession, str` | `TokenResponse` | Validates a refresh token, looks up the user, and issues a new access+refresh token pair. Raises `UnauthorizedError` if the token or user is invalid. |
-  
-  #### Property Service — `backend/app/services/property_service.py`
-  
-  | Function | Parameters | Returns | Description |
-  |----------|-----------|---------|-------------|
-  | `_verify_active_membership(db, user)` | Internal | `None` | Ensures the host has an active membership. Raises `ForbiddenError` if no host profile, `MembershipRequiredError` if no active membership. |
-  | `_count_host_listings(db, host_id)` | Internal | `int` | Counts active property listings for a host. |
-  | `create_property(db, data, host)` | `AsyncSession, PropertyCreate, User` | `Property` | Creates a new property listing. Requires the host to have an active membership. |
-  | `update_property(db, property_id, data, host)` | `AsyncSession, UUID, PropertyUpdate, User` | `Property` | Updates a property listing. Verifies the caller owns the property. Only updates fields included in the request. |
-  | `delete_property(db, property_id, host)` | `AsyncSession, UUID, User` | `None` | Soft-deletes (deactivates) a property by setting `is_active=False`. |
-  | `get_property(db, property_id)` | `AsyncSession, UUID` | `Property` | Fetches a single property with eager-loaded images and hourly config. Raises `NotFoundError` if not found. |
-  | `search_properties(db, params)` | `AsyncSession, PropertySearchParams` | `tuple[list[Property], int]` | Searches active properties with filters (city, price range, guest capacity, hourly availability, host). Returns paginated results with total count. |
-  | `configure_hourly_booking(db, property_id, data, host)` | `AsyncSession, UUID, HourlyBookingConfigUpdate, User` | `Property` | Creates or updates hourly booking configuration. Sets `hourly_enabled=True` on the property. |
-  | `add_property_image(db, property_id, image_url, is_primary, host)` | `AsyncSession, UUID, str, bool, User` | `PropertyImage` | Adds an image to a property. If `is_primary`, un-marks any existing primary image. |
-  | `_get_property_for_host(db, property_id, host_id)` | Internal | `Property` | Fetches a property and verifies the caller is the owner. Raises `NotFoundError` or `ForbiddenError`. |
-  
-  #### Booking Service — `backend/app/services/booking_service.py`
-  
-  | Function | Parameters | Returns | Description |
-  |----------|-----------|---------|-------------|
-  | `create_booking(db, data, guest)` | `AsyncSession, BookingCreate, User` | `Booking` | Creates a booking with full validation: property exists and is active, guest isn't the host, dates are valid and future, no overlapping bookings. Calculates price based on nightly rate × nights or hourly rate × hours. |
-  | `update_booking_status(db, booking_id, new_status, user)` | `AsyncSession, UUID, str, User` | `Booking` | Transitions booking status with permission checks: hosts can confirm/reject/complete, guests can cancel, admins can do anything. |
-  | `get_booking(db, booking_id, user)` | `AsyncSession, UUID, User` | `Booking` | Retrieves a booking. Only visible to the guest, host, or admins. |
-  | `list_bookings(db, user, page, page_size)` | `AsyncSession, User, int, int` | `tuple[list[Booking], int]` | Lists bookings filtered by role: guests see their bookings, hosts see bookings for their properties, admins see all. Paginated with total count. |
-  
-  #### Membership Service — `backend/app/services/membership_service.py`
-  
-  | Function | Parameters | Returns | Description |
-  |----------|-----------|---------|-------------|
-  | `get_available_plans()` | — | `list[MembershipPlanOut]` | Returns all available plans (Basic, Pro, Premium) with pricing and listing limits. |
-  | `subscribe(db, data, host)` | `AsyncSession, MembershipSubscribeRequest, User` | `Membership` | Creates a new 30-day membership. Validates the host profile exists and no active membership is already in place. Simulates payment processing. |
-  | `get_current_membership(db, host)` | `AsyncSession, User` | `Membership` | Retrieves the host's most recent membership. Raises `NotFoundError` if none exists. |
-  | `cancel_membership(db, host)` | `AsyncSession, User` | `Membership` | Cancels the host's active membership and disables auto-renewal. Raises `BadRequestError` if the membership is not active. |
-  | `process_webhook(db, event_type, payment_ref, status)` | `AsyncSession, str, str, str` | `None` | Processes payment gateway webhooks to update membership status: `payment.succeeded` → active, `payment.failed` → past_due, `subscription.cancelled` → cancelled. |
-  
-  #### Message Service — `backend/app/services/message_service.py`
-  
-  | Function | Parameters | Returns | Description |
-  |----------|-----------|---------|-------------|
-  | `start_conversation(db, data, guest)` | `AsyncSession, ConversationCreate, User` | `Conversation` | Starts a new conversation thread about a property. Validates the property exists, the guest isn't the host, and no existing conversation for this guest+property+host. Creates the conversation and its initial message. |
-  | `send_message(db, conversation_id, data, sender)` | `AsyncSession, UUID, MessageCreate, User` | `Message` | Sends a message in an existing conversation. Verifies the sender is a participant. |
-  | `list_conversations(db, user, page, page_size)` | `AsyncSession, User, int, int` | `tuple[list[Conversation], int]` | Lists conversations for the user (as guest or host), ordered by most recent activity, with messages eager-loaded. |
-  | `get_messages(db, conversation_id, user, page, page_size)` | `AsyncSession, UUID, User, int, int` | `tuple[list[Message], int]` | Retrieves paginated messages in a conversation, ordered chronologically. Verifies the user is a participant. |
-  | `mark_message_read(db, message_id, user)` | `AsyncSession, UUID, User` | `Message` | Marks a message as read. Only the recipient (not the sender) can mark messages as read. |
-  | `_get_conversation_for_user(db, conversation_id, user_id)` | Internal | `Conversation` | Fetches a conversation and verifies the user is a participant. |
-  
-  #### Review Service — `backend/app/services/review_service.py`
-  
-  | Function | Parameters | Returns | Description |
-  |----------|-----------|---------|-------------|
-  | `create_review(db, data, reviewer)` | `AsyncSession, ReviewCreate, User` | `Review` | Creates a review for a completed booking. Validates: booking exists, reviewer is the guest, booking is completed, and no existing review. After creation, recalculates the host's average rating. |
-  | `list_property_reviews(db, property_id, page, page_size)` | `AsyncSession, UUID, int, int` | `tuple[list[Review], int]` | Lists all reviews for a specific property, paginated. |
-  | `list_host_reviews(db, host_id, page, page_size)` | `AsyncSession, UUID, int, int` | `tuple[list[Review], int]` | Lists all reviews for properties owned by a specific host. |
-  | `_update_host_rating(db, host_user_id)` | Internal | `None` | Recalculates and updates the host's `avg_rating` and `total_reviews` in their profile. |
-  
-  #### Upload Service — `backend/app/services/upload_service.py`
-  
-  | Function | Parameters | Returns | Description |
-  |----------|-----------|---------|-------------|
-  | `get_s3_client()` | — | `boto3.client` | Creates an S3 client configured for the current environment (MinIO in development). |
-  | `upload_image(file_bytes, content_type, folder)` | `bytes, str, str` | `str` | Uploads an image to S3 with a UUID-based key. Returns the public URL. |
-  | `delete_image(image_url)` | `str` | `bool` | Deletes an image from S3 by its URL. Returns `True` on success, `False` on error. |
-  
-  ---
-  
-  ### 3.9 API Routes (v1)
-  
-  **Router aggregation:** `backend/app/api/v1/router.py` — Mounts all sub-routers under `/api/v1`.
-  
-  | Prefix | Tags | Router File |
-  |--------|------|-------------|
-  | `/auth` | Authentication | `auth.py` |
-  | `/properties` | Properties | `properties.py` |
-  | `/bookings` | Bookings | `bookings.py` |
-  | (root) `/conversations`, `/messages` | Messaging | `messages.py` |
-  | `/reviews` | Reviews | `reviews.py` |
-  | `/memberships` | Memberships | `memberships.py` |
-  | `/admin` | Admin | `admin.py` |
-  
-  #### Auth Routes — `backend/app/api/v1/auth.py`
-  
-  | Method | Path | Auth | Description |
-  |--------|------|------|-------------|
-  | `POST` | `/auth/register` | Public | Register a new user account. Returns `UserOut` (201). |
-  | `POST` | `/auth/lo
+# PROJECT REFERENCE
+ 
+ > Auto-generated April 2026. Optimized for LLM consumption. App name: **StayNest** — commission-free rental platform.
+ 
+ ---
+ 
+ ## Stack & Config
+ 
+ ### Backend
+ | Layer | Tech |
+ |---|---|
+ | Framework | FastAPI ≥0.109, Python 3.14 |
+ | ORM | SQLAlchemy 2.x async (`asyncpg`) |
+ | DB | PostgreSQL (async engine, pool_size=20, max_overflow=10) |
+ | Migrations | Alembic |
+ | Auth | Dual: **BetterAuth sessions** (primary) + **JWT fallback** |
+ | Password hashing | Argon2 (`argon2-cffi`) via passlib |
+ | Async tasks | Celery + Redis (broker: db=1) |
+ | Storage | S3-compatible (MinIO default) via boto3 |
+ | Rate limiting | Redis-backed fixed-window (per-IP) |
+ | Validation | Pydantic v2 + pydantic-settings |
+ | HTTP client | httpx (tests) |
+ 
+ ### Frontend
+ | Layer | Tech |
+ |---|---|
+ | Framework | Next.js 15 (App Router), React 19, TypeScript 5 |
+ | Auth | BetterAuth v1.5 client+server (`better-auth`) |
+ | State | Zustand v4 |
+ | HTTP | Axios v1 |
+ | Forms | react-hook-form v7 + zod v3 |
+ | Styles | Tailwind CSS v3, Nunito font |
+ | Animation | framer-motion v12 |
+ | Testing | Vitest v4 + @testing-library/react v16 |
+ 
+ ### Key Config Files
+ - `backend/.env.example` — canonical env var list
+ - `backend/app/config.py` — `Settings(BaseSettings)`, loaded from `.env`
+ - `frontend/.env.local` / `frontend/.env.example` — Next.js env
+ - `docker-compose.yml` — services: `api`, `celery-worker`, `db` (postgres), `redis`, `minio`, `frontend`
+ - `backend/alembic.ini` + `backend/alembic/` — DB migrations
+ 
+ ---
+ 
+ ## Project Structure
+ 
+ ```
+ .
+ ├── backend/
+ │ ├── app/
+ │ │ ├── main.py # FastAPI app factory, lifespan, middleware
+ │ │ ├── config.py # Settings (pydantic-settings, 12-factor)
+ │ │ ├── database.py # Async engine, session factory, Base, get_db dep
+ │ │ ├── dependencies.py # Auth deps: get_current_user, require_host, require_admin
+ │ │ ├── api/v1/
+ │ │ │ ├── router.py # Aggregates all sub-routers under /api/v1
+ │ │ │ ├── auth.py # Register, login, refresh, profile, pw-change, forgot/reset
+ │ │ │ ├── properties.py # Property CRUD, image upload, hourly config
+ │ │ │ ├── bookings.py # Booking create/list/get/status/cancel
+ │ │ │ ├── messages.py # Conversation + message CRUD
+ │ │ │ ├── reviews.py # Review create, list by property/host
+ │ │ │ ├── memberships.py # Plans, subscribe, cancel, payment webhook
+ │ │ │ └── admin.py # Admin-only: users, properties, memberships, bookings, stats
+ │ │ ├── models/
+ │ │ │ ├── user.py # User, HostProfile
+ │ │ │ ├── property.py # Property, PropertyImage, HourlyBookingConfig
+ │ │ │ ├── booking.py # Booking, BookingStatus, BookingType enums
+ │ │ │ ├── membership.py # Membership, PLAN_CONFIG, enums
+ │ │ │ ├── review.py # Review
+ │ │ │ ├── message.py # Conversation, Message
+ │ │ │ └── betterauth.py # BetterAuthUser, BetterAuthSession (read-only, bridges auth)
+ │ │ ├── schemas/
+ │ │ │ ├── __init__.py # DecimalFloat type alias (Decimal → float in JSON)
+ │ │ │ ├── user.py # UserRegister/Login/Out/Update, TokenResponse, HostProfileOut
+ │ │ │ ├── property.py # PropertyCreate/Update/Out, HourlyConfig schemas
+ │ │ │ ├── booking.py # BookingCreate/Out/StatusUpdate, PaginatedBookings
+ │ │ │ ├── membership.py # MembershipOut/PlanOut/SubscribeRequest/WebhookPayload
+ │ │ │ ├── message.py # ConversationCreate, MessageCreate/Out, PaginatedMessages
+ │ │ │ └── review.py # ReviewCreate/Out, PaginatedReviews
+ │ │ ├── services/
+ │ │ │ ├── auth_service.py # register_user, authenticate_user, refresh_access_token
+ │ │ │ ├── property_service.py # create/update/delete/search_properties, upload, hourly
+ │ │ │ ├── booking_service.py # create_booking, list_bookings, update_booking_status
+ │ │ │ ├── membership_service.py # subscribe, cancel, process_webhook, get_available_plans
+ │ │ │ ├── message_service.py # start_conversation, list/get conversations, send/read messages
+ │ │ │ ├── review_service.py # create_review, list_property_reviews, list_host_reviews
+ │ │ │ └── upload_service.py # S3 upload via boto3
+ │ │ ├── core/
+ │ │ │ ├── security.py # hash_password, verify_password, create/decode JWT tokens
+ │ │ │ ├── exceptions.py # NotFoundError, ForbiddenError, ConflictError, BadRequestError, UnauthorizedError, MembershipRequiredError
+ │ │ │ ├── permissions.py # UserRole enum (USER/HOST/ADMIN)
+ │ │ │ ├── rate_limiter.py # RateLimitMiddleware + rate_limit_check() helper
+ │ │ │ ├── csrf.py # CSRFMiddleware (blocks cross-origin state mutations)
+ │ │ │ ├── email.py # Email sending (console or SMTP backend)
+ │ │ │ └── logging_config.py # Structured JSON logging setup
+ │ │ └── tasks/
+ │ │ ├── email_tasks.py # Celery tasks: send_welcome_email, booking notifications
+ │ │ └── membership_tasks.py # Celery tasks: expire memberships, renewal reminders
+ │ ├── tests/
+ │ │ ├── conftest.py # pytest fixtures: SQLite test DB, async client, user/host/admin factories
+ │ │ ├── test_auth.py # Unit: registration, login, token refresh, pw-change
+ │ │ ├── test_auth_integration.py
+ │ │ ├── test_properties.py # Unit: CRUD, image upload, hourly config
+ │ │ ├── test_properties_integration.py
+ │ │ ├── test_bookings.py # Unit: nightly/hourly create, status machine, overlap
+ │ │ ├── test_bookings_integration.py
+ │ │ ├── test_memberships.py # Unit: subscribe, cancel, webhook, plan limits
+ │ │ ├── test_memberships_integration.py
+ │ │ ├── test_messages.py # Unit: conversation + message flows
+ │ │ ├── test_messages_integration.py
+ │ │ ├── test_reviews.py # Unit: create review, list by property/host
+ │ │ ├── test_reviews_integration.py
+ │ │ ├── test_admin.py # Unit: admin endpoints
+ │ │ ├── test_admin_integration.py
+ │ │ ├── test_services_unit.py # Pure service-layer unit tests (no HTTP)
+ │ │ └── test_upload.py # Upload endpoint tests
+ │ ├── requirements.txt # Production deps
+ │ ├── requirements-dev.txt # Test/lint deps (pytest-asyncio, aiosqlite, etc.)
+ │ └── pyproject.toml # Tool config (ruff, mypy, pytest)
+ ├── frontend/
+ │ ├── src/
+ │ │ ├── app/ # Next.js App Router pages
+ │ │ │ ├── layout.tsx # Root layout (Nunito font, ClientProviders wrapper)
+ │ │ │ ├── page.tsx # Home / landing page
+ │ │ │ ├── globals.css # Tailwind base
+ │ │ │ ├── client-providers.tsx # Wraps children with BetterAuth session sync + Zustand
+ │ │ │ ├── auth/ # login, register, forgot-password pages
+ │ │ │ ├── properties/ # listing browse + [id] detail
+ │ │ │ ├── bookings/ # booking list + [id] detail
+ │ │ │ ├── messages/ # conversations list + [id] thread
+ │ │ │ ├── dashboard/ # host dashboard (listings, bookings, stats)
+ │ │ │ ├── profile/ # user profile edit
+ │ │ │ ├── admin/ # admin panel pages
+ │ │ │ └── api/auth/[...all]/route.ts # BetterAuth catch-all API route
+ │ │ ├── components/
+ │ │ │ ├── layout/ # Navbar, Footer, Sidebar
+ │ │ │ ├── property/ # PropertyCard, PropertyFilters, ImageUpload, HourlyConfig
+ │ │ │ ├── ui/ # Button, Input, Modal, Badge, Spinner, etc. (shared primitives)
+ │ │ │ └── providers/ # ProtectedRoute, SessionProvider
+ │ │ ├── hooks/
+ │ │ │ ├── index.ts # re-exports all hooks
+ │ │ │ ├── use-async.ts # generic async state handler
+ │ │ │ ├── use-debounce.ts
+ │ │ │ ├── use-infinite-scroll.ts
+ │ │ │ ├── use-click-outside.ts
+ │ │ │ └── use-media-query.ts
+ │ │ ├── lib/
+ │ │ │ ├── api.ts # Axios instance + interceptors + typed API method groups
+ │ │ │ ├── auth-client.ts # BetterAuth client (signIn/Up/Out, useSession)
+ │ │ │ └── auth.ts # BetterAuth server config (DB pool, social providers, custom fields)
+ │ │ ├── stores/
+ │ │ │ ├── auth-store.ts # Zustand: user, sessionToken, isAuthenticated, setSession/logout
+ │ │ │ ├── property-store.ts # Zustand: property search results, filters
+ │ │ │ ├── booking-store.ts # Zustand: booking list cache
+ │ │ │ └── ui-store.ts # Zustand: global UI state (modals, toasts)
+ │ │ ├── types/index.ts # All TS interfaces matching backend Pydantic schemas
+ │ │ └── middleware.ts # Next.js edge middleware — session cookie gating
+ │ ├── package.json
+ │ ├── next.config.js
+ │ ├── tailwind.config.ts
+ │ └── vitest.config.ts
+ ├── docker-compose.yml
+ ├── seed.sql # DB seed data
+ └── setup_from_excel.py # Utility: recreate project files from Project_Files.xlsx
+ ```
+ 
+ ---
+ 
+ ## Architecture & Data Flow
+ 
+ ### Auth Flow (Dual-Auth Pattern)
+ ```
+ Browser → BetterAuth (Next.js /api/auth/*) → Writes: user table, session table (camelCase)
+ Browser → API requests → Bearer: <session_token>
+ FastAPI dependency (get_current_user):
+  1. Try BetterAuth path: session table lookup → BetterAuthUser → bridge to/create users row
+  2. Fallback: decode JWT → lookup users row
+  3. Auto-create HostProfile if role=host|admin and none exists
+ ```
+ 
+ - BetterAuth runs **server-side in Next.js** and owns `user`/`session`/`account`/`verification` tables.
+ - FastAPI reads those tables **read-only** to validate sessions.
+ - The `users` table is the backend's own user table; bridged by email match.
+ - `hashed_password = "!betterauth"` is a sentinel marking BetterAuth-managed accounts.
+ 
+ ### Request Lifecycle
+ ```
+ Client → Next.js middleware (cookie gate) → Next.js page/API
+ Client → Axios (attaches Bearer sessionToken from Zustand) → FastAPI
+ FastAPI: RateLimitMiddleware → CSRFMiddleware → CORSMiddleware → Router
+ Router → Auth dep (get_current_user) → Service layer → DB (async SQLAlchemy) → Response
+ ```
+ 
+ ### State Management (Frontend)
+ - **BetterAuth** owns session lifecycle via `useSession()` hook
+ - **`client-providers.tsx`** syncs BetterAuth session → Zustand `auth-store` on mount/change
+ - **`auth-store`** exposes `sessionToken` → picked up by Axios request interceptor
+ - `backendId` in `AuthUser` is the UUID from the backend `users` table (differs from BetterAuth's string ID)
+ 
+ ### Booking State Machine
+ ```
+ PENDING → CONFIRMED | REJECTED | CANCELLED
+ CONFIRMED → CANCELLED | COMPLETED
+ COMPLETED, CANCELLED, REJECTED → (terminal)
+ ```
+ Overlap check uses `SELECT ... FOR UPDATE` on Postgres to prevent double-booking race conditions. Degrades gracefully for SQLite (tests).
+ 
+ ### Membership & Listing Gate
+ - Hosts need an **active, non-expired** `Membership` to create/manage properties.
+ - `membership.max_listings` enforced at create time (`_count_host_listings` + cap check).
+ - Plans: `basic` (5 listings, ₹2499), `pro` (25 listings, ₹6499), `premium` (∞, ₹16499).
+ 
+ ---
+ 
+ ## File-by-File Summary
+ 
+ ### Backend
+ 
+ **`app/main.py`**
+ - **Purpose**: App factory (`create_app()`), lifespan (Redis init/teardown), CORS/CSRF/RateLimit middleware, global exception handlers, `/ping` + `/health` routes.
+ - **Exports**: `app = create_app()`
+ - **Key logic**: Redis unavailability → rate limiter no-ops gracefully. `/health` checks DB + Redis.
+ 
+ **`app/config.py`**
+ - **Purpose**: All settings loaded from env vars via pydantic-settings. `validate_secrets()` blocks startup in non-dev if placeholder secrets remain.
+ - **Exports**: `settings: Settings`
+ 
+ **`app/database.py`**
+ - **Purpose**: Async SQLAlchemy engine, session factory, `Base`, `get_db` dependency.
+ - **Exports**: `engine`, `async_session_factory`, `Base`, `get_db`
+ - **Key logic**: `get_db` auto-commits on success, rolls back on exception.
+ 
+ **`app/dependencies.py`**
+ - **Purpose**: FastAPI auth dependencies. Dual-auth: BetterAuth sessions first, JWT fallback. Exports `get_current_user`, `require_host`, `require_admin`.
+ - **Key logic**: BetterAuth → lazily creates `users` row on first API call. Auto-creates `HostProfile` for host/admin roles.
+ 
+ **`app/core/security.py`**
+ - **Exports**: `hash_password(pw)→str`, `verify_password(plain, hashed)→bool`, `create_access_token(data, expires_delta)→str`, `create_refresh_token(data)→str`, `decode_token(token)→dict|None`
+ - **Key logic**: Argon2 hashing. JWT `type` claim: `"access"` or `"refresh"`. `password_changed_at` on User invalidates pre-rotation tokens.
+ 
+ **`app/core/exceptions.py`**
+ - **Exports**: `NotFoundError(404)`, `ForbiddenError(403)`, `ConflictError(409)`, `BadRequestError(400)`, `UnauthorizedError(401)`, `MembershipRequiredError(402)`
+ 
+ **`app/core/rate_limiter.py`**
+ - **Key logic**: Redis `INCR`+`EXPIRE` fixed-window. Global middleware: writes=30/min, reads=120/min. Per-endpoint `rate_limit_check(request, limit)` for tighter caps on auth routes.
+ 
+ **`app/services/property_service.py`**
+ - **Key logic**: `create_property` requires active membership + checks `max_listings` cap. `delete_property` sets `is_active=False` (soft delete). `search_properties` supports city/price/guests/hourly filters + pagination.
+ 
+ **`app/services/booking_service.py`**
+ - **Key logic**: Overlap detection via `FOR UPDATE` lock. Price calc: nightly = `price_per_night * nights`, hourly = `hourly_price * hours`. Cannot book own property. `update_booking_status` validates against `VALID_TRANSITIONS` state machine.
+ 
+ **`app/services/membership_service.py`**
+ - **Key logic**: `subscribe` upserts — finds existing row (unique constraint on `host_id`) and reactivates/switches rather than inserting. Webhook `process_webhook` updates by `payment_ref`.
+ 
+ **`app/models/betterauth.py`**
+ - **Purpose**: Read-only SQLAlchemy models for BetterAuth's `user` and `session` tables. Column names are camelCase (SQLAlchemy `mapped_column("camelCaseName", ...)` pattern).
+ 
+ ### Frontend
+ 
+ **`src/lib/api.ts`**
+ - **Purpose**: Axios instance (baseURL=`NEXT_PUBLIC_API_URL`), request interceptor attaches Bearer token from Zustand, response interceptor redirects to `/auth/login` on 401. Exports typed API groups: `profileApi`, `propertyApi`, `bookingApi`, `messageApi`, `reviewApi`, `membershipApi`, `adminApi`.
+ - **Exports**: `default api`, `getApiError(err)→string`, `profileApi`, `propertyApi`, `bookingApi`, etc.
+ 
+ **`src/lib/auth-client.ts`**
+ - **Purpose**: BetterAuth client (`createAuthClient`). Provides `signIn`, `signUp`, `signOut`, `useSession`.
+ 
+ **`src/lib/auth.ts`**
+ - **Purpose**: BetterAuth server instance. Connects to same PostgreSQL DB. Configures email/password auth, optional Google/GitHub OAuth, custom user fields (`role`, `phone`). Session expires in 7 days.
+ 
+ **`src/stores/auth-store.ts`**
+ - **Purpose**: Zustand auth state. `AuthUser` shape includes `backendId` (backend UUID). `setSession(user, token)` called by `client-providers.tsx` on session change.
+ 
+ **`src/middleware.ts`**
+ - **Purpose**: Edge middleware — allows public paths, checks BetterAuth session cookie, redirects unauthenticated users to login. Role enforcement delegated to `ProtectedRoute` component.
+ 
+ ---
+ 
+ ## Data Models & Types
+ 
+ ### Backend SQLAlchemy Models
+ 
+ ```python
+ User: {id: UUID(pk), email: str(unique), hashed_password: str, full_name: str,
+  phone: str|None, role: 'user'|'host'|'admin', is_active: bool,
+  created_at: datetime, updated_at: datetime, password_changed_at: datetime|None}
+ 
+ HostProfile: {id: UUID(pk), user_id: UUID(fk→users, unique), business_name: str|None,
+  bio: str|None, phone_visible: bool, is_verified: bool,
+  avg_rating: float, total_reviews: int, created_at: datetime}
+ 
+ Property: {id: UUID(pk), host_id: UUID(fk→users), title: str, description: str,
+  city: str, address: str, latitude: float|None, longitude: float|None,
+  price_per_night: Decimal(10,2), max_guests: int, amenities: JSON|None,
+  is_active: bool, hourly_enabled: bool, created_at, updated_at}
+ 
+ PropertyImage: {id: UUID(pk), property_id: UUID(fk→properties), image_url: str,
+  is_primary: bool, sort_order: int}
+ 
+ HourlyBookingConfig: {id: UUID(pk), property_id: UUID(fk, unique), hourly_price: Decimal(10,2),
+  min_hours: int, max_hours: int, available_from: time, available_to: time}
+ 
+ Booking: {id: UUID(pk), property_id: UUID(fk), guest_id: UUID(fk→users),
+  host_id: UUID(fk→users), check_in: datetime, check_out: datetime,
+  total_price: Decimal(10,2), booking_type: 'nightly'|'hourly',
+  hours: int|None, status: BookingStatus, created_at, updated_at}
+ 
+ Membership: {id: UUID(pk), host_id: UUID(fk→host_profiles, unique), plan_type: 'basic'|'pro'|'premium',
+  start_date: datetime, end_date: datetime, status: 'active'|'cancelled'|'expired'|'past_due',
+  auto_renew: bool, payment_ref: str|None, amount: Decimal(10,2),
+  max_listings: int, created_at, updated_at}
+ 
+ Review: {id: UUID(pk), booking_id: UUID(fk, unique), property_id: UUID(fk),
+  reviewer_id: UUID(fk→users), rating: Decimal(3,1), comment: str|None, created_at}
+ 
+ Conversation: {id: UUID(pk), property_id: UUID(fk), guest_id: UUID(fk→users),
+  host_id: UUID(fk→users), created_at, updated_at}
+ 
+ Message: {id: UUID(pk), conversation_id: UUID(fk), sender_id: UUID(fk→users),
+  content: str, message_type: 'text', is_read: bool, created_at}
+ 
+ BetterAuthUser: {id: str(pk), name: str, email: str, emailVerified: bool,
+  image: str|None, role: str, phone: str|None, createdAt, updatedAt}
+ BetterAuthSession: {id: str(pk), userId: str(fk→user), token: str(unique),
+  expiresAt: datetime, ipAddress: str|None, userAgent: str|None}
+ ```
+ 
+ ### Frontend TypeScript Types (`src/types/index.ts`)
+ 
+ ```typescript
+ User: {id, email, full_name, phone?, role: 'user'|'host'|'admin', is_active, created_at}
+ AuthUser: {id, backendId: string|null, email, full_name, name, phone?, role, image?} // Zustand
+ Property: {id, host_id, title, description, city, address, lat?, lng?,
+  price_per_night, max_guests, amenities?, is_active, hourly_enabled,
+  images: PropertyImage[], hourly_config?, created_at, updated_at, host_name?}
+ PropertyImage: {id, image_url, is_primary, sort_order}
+ HourlyBookingConfig: {id, hourly_price, min_hours, max_hours, available_from, available_to}
+ Booking: {id, property_id, guest_id, host_id, check_in, check_out, total_price,
+  booking_type: 'nightly'|'hourly', hours?, status, created_at, updated_at,
+  property_title?, guest_name?}
+ Conversation: {id, property_id, guest_id, host_id, property_title?, other_party_name?,
+  created_at, updated_at, last_message?, unread_count}
+ Message: {id, conversation_id, sender_id, content, message_type: 'text', is_read, created_at}
+ Review: {id, booking_id, property_id, reviewer_id, rating, comment?, created_at}
+ Membership: {id, plan_type, start_date, end_date, status, auto_renew, amount, max_listings}
+ HostProfile: {id, user_id, business_name?, bio?, phone_visible, is_verified, avg_rating, total_reviews}
+ ```
+ 
+ ### Membership Plan Config (hardcoded in `models/membership.py`)
+ ```python
+ PLAN_CONFIG = {
+  'basic': {price: 2499.00, max_listings: 5, label: 'Basic'},
+  'pro': {price: 6499.00, max_listings: 25, label: 'Pro'},
+  'premium': {price: 16499.00, max_listings: 999999, label: 'Premium'},
+ }
+ ```
+ 
+ ---
+ 
+ ## API & Interfaces
+ 
+ All routes prefixed `/api/v1`. Auth via `Authorization: Bearer <token>`.
+ 
+ ### Auth — `/api/v1/auth`
+ | Method | Path | Auth | Body/Params | Returns |
+ |---|---|---|---|---|
+ | POST | `/register` | — | `{email, password, full_name, phone?, role:'user'\|'host'}` | `UserOut` 201 |
+ | POST | `/login` | — | `{email, password}` | `TokenResponse` |
+ | POST | `/refresh` | — | `{refresh_token}` | `TokenResponse` |
+ | GET | `/me` | ✓ | — | `UserOut` |
+ | PUT | `/me` | ✓ | `{full_name?, phone?}` | `UserOut` |
+ | PUT | `/me/password` | ✓ | `{current_password, new_password}` | `{message}` |
+ | POST | `/me/forgot-password` | — | `{email}` | `{message}` |
+ | POST | `/me/reset-password` | — | `{token, new_password}` | `{message}` |
+ 
+ ### Properties — `/api/v1/properties`
+ | Method | Path | Auth | Body/Params | Returns |
+ |---|---|---|---|---|
+ | GET | `` | — | `?city&min_price&max_price&max_guests&hourly_available&host_id&page&page_size` | `{items:[PropertyOut], total, page, page_size}` |
+ | GET | `/{id}` | — | — | `PropertyOut` |
+ | POST | `` | host | `PropertyCreate` | `PropertyOut` 201 |
+ | PUT | `/{id}` | host(owner) | `PropertyUpdate` | `PropertyOut` |
+ | DELETE | `/{id}` | host(owner) | — | 204 |
+ | POST | `/{id}/images` | host(owner) | `file` (multipart), `?is_primary` | `{image_url, is_primary}` 201 |
+ | PUT | `/{id}/hourly` | host(owner) | `HourlyBookingConfigUpdate` | hourly config |
+ 
+ ### Bookings — `/api/v1/bookings`
+ | Method | Path | Auth | Body/Params | Returns |
+ |---|---|---|---|---|
+ | POST | `` | user | `{property_id, check_in, check_out, booking_type, hours?}` | `BookingOut` 201 |
+ | GET | `` | user | `?page&page_size` | `PaginatedBookings` |
+ | GET | `/{id}` | user(participant) | — | `BookingOut` |
+ | PUT | `/{id}/status` | user(participant) | `{status}` | `BookingOut` |
+ | POST | `/{id}/cancel` | user(participant) | — | `BookingOut` |
+ 
+ ### Messaging
+ | Method | Path | Auth | Returns |
+ |---|---|---|---|
+ | POST | `/conversations` | user | conversation dict 201 |
+ | GET | `/conversations` | user | `{items, total, page, page_size}` |
+ | GET | `/conversations/{id}` | user(participant) | conversation detail dict |
+ | GET | `/conversations/{id}/messages` | user(participant) | `PaginatedMessages` |
+ | POST | `/conversations/{id}/messages` | user(participant) | `MessageOut` 201 |
+ | PUT | `/messages/{id}/read` | user(participant) | `MessageOut` |
+ 
+ ### Reviews — `/api/v1/reviews`
+ | Method | Path | Auth | Returns |
+ |---|---|---|---|
+ | POST | `` | user | `ReviewOut` 201 |
+ | GET | `/property/{id}` | — | `PaginatedReviews` |
+ | GET | `/host` | host | `PaginatedReviews` |
+ 
+ ### Memberships — `/api/v1/memberships`
+ | Method | Path | Auth | Returns |
+ |---|---|---|---|
+ | GET | `/plans` | — | `[MembershipPlanOut]` |
+ | POST | `/subscribe` | host | `MembershipOut` 201 |
+ | GET | `/current` | host | `MembershipOut` |
+ | PUT | `/cancel` | host | `MembershipOut` |
+ | POST | `/webhook` | header:`x-webhook-secret` | `{status:'processed'}` |
+ 
+ ### Admin — `/api/v1/admin` (requires `role=admin`)
+ | Method | Path | Returns |
+ |---|---|---|
+ | GET | `/users` | paginated users |
+ | GET | `/properties` | paginated properties (with host_name) |
+ | GET | `/memberships` | paginated memberships |
+ | GET | `/bookings` | paginated bookings (with property_title, guest_name) |
+ | GET | `/stats` | `{total_users, total_properties, total_bookings, active_memberships}` |
+ | PUT | `/users/{id}/role` | updated user |
+ | PUT | `/users/{id}/active` | updated user |
+ | DELETE | `/properties/{id}` | 204 |
+ 
+ ### Health
+ - `GET /ping` → `{status:'ok'}` (no deps)
+ - `GET /health` → `{status:'ok', db:bool, redis:bool}`
+ 
+ ### BetterAuth (Next.js, not FastAPI)
+ - `POST /api/auth/sign-in/email`
+ - `POST /api/auth/sign-up/email`
+ - `POST /api/auth/sign-out`
+ - `GET /api/auth/session`
+ - OAuth callbacks: `/api/auth/callback/google`, `/api/auth/callback/github`
+ 
+ ---
+ 
+ ## Constants & Config Values
+ 
+ ### Backend Env Vars (`backend/app/config.py`)
+ ```
+ APP_ENV=development|staging|production
+ DEBUG=false
+ DATABASE_URL=postgresql+asyncpg://user:pass@host:5432/db
+ DATABASE_ECHO=false
+ REDIS_URL=redis://localhost:6379/0
+ CELERY_BROKER_URL=redis://localhost:6379/1
+ JWT_SECRET_KEY=<64-byte hex> # MUST change in non-dev
+ JWT_ALGORITHM=HS256
+ JWT_ACCESS_TOKEN_EXPIRE_MINUTES=30
+ JWT_REFRESH_TOKEN_EXPIRE_DAYS=7
+ S3_ENDPOINT_URL=http://localhost:9000
+ S3_PUBLIC_URL=http://localhost:9000
+ S3_ACCESS_KEY_ID=minioadmin
+ S3_SECRET_ACCESS_KEY=minioadmin
+ S3_BUCKET_NAME=staynest-images
+ S3_REGION=us-east-1
+ CORS_ORIGINS=["http://localhost:3000"]
+ WEBHOOK_SECRET=<secret> # MUST change in non-dev
+ EMAIL_BACKEND=console|smtp
+ SMTP_HOST, SMTP_PORT=587, SMTP_TLS=true, SMTP_USER, SMTP_PASSWORD
+ SMTP_FROM=noreply@staynest.com
+ RATE_LIMIT_PER_MINUTE=60
+ ```
+ 
+ ### Frontend Env Vars
+ ```
+ NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1
+ NEXT_PUBLIC_APP_URL=http://localhost:3000
+ DATABASE_URL=postgresql://... # BetterAuth server-side DB connection
+ GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET # optional OAuth
+ GITHUB_CLIENT_ID / GITHUB_CLIENT_SECRET # optional OAuth
+ ```
+ 
+ ### Rate Limits
+ - Global middleware: GET/HEAD=120/min, POST/PUT/PATCH/DELETE=30/min (per IP)
+ - `/auth/register`: 10/min; `/auth/login`: 20/min
+ 
+ ### Image Upload Constraints
+ - Max size: 10 MB per image
+ - Allowed MIME: `image/jpeg`, `image/png`, `image/webp`, `image/gif`
+ 
+ ---
+ 
+ ## Known Patterns & Conventions
+ 
+ ### Naming
+ - Backend: `snake_case` everywhere; router files plural (`properties.py`), model files singular (`property.py`)
+ - Frontend: `kebab-case` files, `PascalCase` components, `camelCase` functions
+ - All UUIDs as `string` in frontend, `uuid.UUID` in backend schemas
+ 
+ ### Pagination Pattern
+ All list endpoints return: `{items:[...], total:int, page:int, page_size:int}`
+ Default: `page=1`, `page_size=20`. Max `page_size=100` (messages: 200).
+ 
+ ### Service Layer Pattern
+ - Routes are thin: validate input → call service → serialize output
+ - Services own all business logic; raise from `app.core.exceptions`
+ - Services receive `db: AsyncSession` — DB session never passed to schemas
+ 
+ ### `DecimalFloat` Pattern
+ All `Decimal` fields in response schemas use `DecimalFloat = Annotated[Decimal, PlainSerializer(float)]` to serialize as JSON number (not string).
+ 
+ ### Auth Dependency Chain
+ ```python
+ get_current_user → tries BetterAuth then JWT → returns User or raises 401
+ require_host → get_current_user + role in ('host','admin') or 403
+ require_admin → get_current_user + role == 'admin' or 403
+ ```
+ 
+ ### Test Setup
+ - Unit tests: SQLite in-memory (`sqlite+aiosqlite:///./test.db`), recreated per test via `autouse` fixture
+ - `conftest.py` provides: `db_session`, `client` (AsyncClient + dependency overrides), `user_factory`, `host_factory`, `admin_factory` fixtures
+ - Auth injected directly via dependency override — bypasses real JWT/BetterAuth in all unit tests
+ - Integration test files (`test_*_integration.py`) use separate fixtures/DB
+ 
+ ### Celery Task Resilience
+ All `task.delay()` calls inside services are wrapped in `try/except` — task queue failure never blocks the HTTP response.
+ 
+ ### Soft Delete
+ Properties use `is_active=False` (never hard-deleted via API). DB-level cascade deletes cascade from `properties` → `bookings`, `reviews`, `messages`, `images`.
+ 
+ ---
+ 
+ ## Gotchas & Non-obvious Details
+ 
+ 1. **Dual Auth Identity Mismatch**: `AuthUser.id` = BetterAuth string ID; `AuthUser.backendId` = UUID from backend `users` table. Always use `backendId` for API-level filtering (booking ownership, property host_id comparisons, etc.).
+ 
+ 2. **BetterAuth Table Naming**: BetterAuth tables use camelCase column names (`emailVerified`, `createdAt`, `userId`). SQLAlchemy models in `betterauth.py` map them with `mapped_column("camelCaseName", ...)`. Do NOT rename these columns.
+ 
+ 3. **Lazy HostProfile Creation**: When a BetterAuth `role=host` user hits any authenticated backend endpoint for the first time, `_auth_via_betterauth()` auto-creates their `HostProfile`. They still need an active `Membership` before creating listings.
+ 
+ 4. **Membership Unique Constraint**: `memberships.host_id` has a unique constraint. Never `INSERT` a new membership — always use `membership_service.subscribe()` which upserts the existing row.
+ 
+ 5. **Password Sentinel**: BetterAuth-managed users have `hashed_password = "!betterauth"`. The change-password endpoint checks `hashed_password.startswith("!")` and rejects with 400. Never try to `verify_password()` against this value.
+ 
+ 6. **SQLite FOR UPDATE Guard**: Booking overlap check uses `SELECT ... FOR UPDATE` but degrades for SQLite via `if "sqlite" not in str(db.bind.url)`. Replicate this guard if adding other `FOR UPDATE` queries.
+ 
+ 7. **`password_changed_at` JWT Invalidation**: After password change, JWT `iat` is compared to `password_changed_at`. JWTs issued before the change are rejected. BetterAuth sessions are unaffected.
+ 
+ 8. **CORS Allowed Headers**: Only `Authorization`, `Content-Type`, `X-Webhook-Secret` are in allowed headers. Adding custom headers requires updating `main.py` CORS config or preflight will fail.
+ 
+ 9. **Redis Unavailability is Silent**: Both global middleware and `rate_limit_check()` silently no-op when Redis is unavailable. Rate limiting is best-effort only.
+ 
+ 10. **Hourly Price Calculation**: `hourly`: uses `HourlyBookingConfig.hourly_price * hours`. Requires `prop.hourly_enabled=True` and a config row. `nightly`: `price_per_night * (check_out - check_in).days`, min 1 night enforced.
+ 
+ 11. **Middleware Role Gap**: Next.js edge middleware only checks for presence of a session cookie (no DB lookup possible at edge). Role enforcement (`host`/`admin` routes) is done client-side by `ProtectedRoute` component — there is no server-side role gate in middleware.
+ 
+ 12. **Missing `DecimalFloat` = String Bug**: If a new response schema uses plain `Decimal` instead of `DecimalFloat`, Pydantic will serialize it as a string (e.g., `"24.99"` instead of `24.99`). Always import and use `DecimalFloat` from `app.schemas`.

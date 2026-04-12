@@ -11,6 +11,7 @@ import Input from "@/components/ui/input";
 import { Spinner, Select, Textarea } from "@/components/ui/index";
 import { toast } from "@/components/ui/toast";
 import { propertyApi } from "@/lib/api";
+import DynamicLocationPicker from "@/components/property/map/dynamic-location-picker";
 
 const AMENITIES_LIST = [
   "WiFi", "Kitchen", "Free Parking", "Pool", "Hot Tub", "Air Conditioning",
@@ -139,6 +140,27 @@ export default function EditPropertyPage() {
           <h3 className="font-semibold text-gray-900">Location</h3>
           <Input label="Address" value={form.address} onChange={(e) => update("address", e.target.value)} />
           <Input label="City" value={form.city} onChange={(e) => update("city", e.target.value)} required />
+
+          {/* Interactive map picker */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Pin your property on the map
+            </label>
+            <DynamicLocationPicker
+              latitude={form.latitude ? parseFloat(form.latitude) : null}
+              longitude={form.longitude ? parseFloat(form.longitude) : null}
+              initialCity={form.city || undefined}
+              onLocationChange={(lat, lng) => {
+                update("latitude", lat.toString());
+                update("longitude", lng.toString());
+              }}
+              onAddressSuggestion={(address) => {
+                if (!form.address.trim()) {
+                  update("address", address);
+                }
+              }}
+            />
+          </div>
         </section>
 
         {/* Pricing & Capacity */}

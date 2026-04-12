@@ -10,7 +10,7 @@ interface ImageGalleryProps {
 
 export default function ImageGallery({ images, title }: ImageGalleryProps) {
   const [showAll, setShowAll] = React.useState(false);
-  const displayImages = images.length > 0 ? images : [{ url: "/placeholder-property.jpg" }];
+  const displayImages = images.length > 0 ? images : [{ url: "/placeholder-property.svg" }];
 
   if (showAll) {
     return (

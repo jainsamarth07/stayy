@@ -115,19 +115,14 @@ async def upload_property_image(
             detail=f"File type '{content_type}' not allowed. Accepted: JPEG, PNG, WebP, GIF.",
         )
 
-    # Stream-read with size cap — reject before consuming full body
+    # Read with size cap (UploadFile.read() is the portable async API)
     max_size = 10 * 1024 * 1024  # 10 MB
-    chunks: list[bytes] = []
-    total = 0
-    async for chunk in file:
-        total += len(chunk)
-        if total > max_size:
-            raise HTTPException(
-                status_code=http_status.HTTP_400_BAD_REQUEST,
-                detail="File too large. Maximum size is 10 MB.",
-            )
-        chunks.append(chunk)
-    contents = b"".join(chunks)
+    contents = await file.read()
+    if len(contents) > max_size:
+        raise HTTPException(
+            status_code=http_status.HTTP_400_BAD_REQUEST,
+            detail="File too large. Maximum size is 10 MB.",
+        )
 
     # Validate magic bytes — content_type is user-controlled and can be spoofed
     magic_map = {

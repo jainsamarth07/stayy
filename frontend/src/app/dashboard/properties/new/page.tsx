@@ -11,6 +11,7 @@ import Input from "@/components/ui/input";
 import { Select, Textarea } from "@/components/ui/index";
 import { toast } from "@/components/ui/toast";
 import { propertyApi } from "@/lib/api";
+import DynamicLocationPicker from "@/components/property/map/dynamic-location-picker";
 
 const propertyTypes = [
   { value: "apartment", label: "Apartment" },
@@ -292,22 +293,26 @@ export default function NewPropertyPage() {
               onChange={(e) => update("city", e.target.value)}
               error={errors.city}
             />
-            <div className="grid grid-cols-2 gap-3">
-              <Input
-                label="Latitude (optional)"
-                type="number"
-                step="any"
-                placeholder="40.7128"
-                value={form.latitude}
-                onChange={(e) => update("latitude", e.target.value)}
-              />
-              <Input
-                label="Longitude (optional)"
-                type="number"
-                step="any"
-                placeholder="-74.0060"
-                value={form.longitude}
-                onChange={(e) => update("longitude", e.target.value)}
+
+            {/* Interactive map picker — replaces manual lat/lng inputs */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Pin your property on the map
+              </label>
+              <DynamicLocationPicker
+                latitude={form.latitude ? parseFloat(form.latitude) : null}
+                longitude={form.longitude ? parseFloat(form.longitude) : null}
+                initialCity={form.city || undefined}
+                onLocationChange={(lat, lng) => {
+                  update("latitude", lat.toString());
+                  update("longitude", lng.toString());
+                }}
+                onAddressSuggestion={(address) => {
+                  // Only auto-fill address if the field is empty
+                  if (!form.address.trim()) {
+                    update("address", address);
+                  }
+                }}
               />
             </div>
           </div>

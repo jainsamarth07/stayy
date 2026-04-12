@@ -93,6 +93,17 @@ async def send_message(
     return MessageOut.model_validate(msg)
 
 
+@router.put("/conversations/{conversation_id}/read", response_model=dict)
+async def mark_conversation_read(
+    conversation_id: uuid.UUID,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    """Mark all unread messages in a conversation as read for the current user."""
+    count = await message_service.mark_conversation_read(db, conversation_id, current_user)
+    return {"marked_read": count}
+
+
 @router.put("/messages/{message_id}/read", response_model=MessageOut)
 async def mark_message_read(
     message_id: uuid.UUID,

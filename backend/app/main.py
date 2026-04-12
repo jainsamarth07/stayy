@@ -34,6 +34,15 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     except Exception:
         app.state.redis = None  # Rate limiting falls back to no-op
 
+    # Ensure MinIO bucket exists and has a public-read policy so browser <img>
+    # tags can load uploaded images directly without 403 Access Denied errors.
+    try:
+        from app.services.upload_service import get_s3_client, _ensure_bucket_exists
+        _ensure_bucket_exists(get_s3_client())
+        logger.info("MinIO bucket policy verified on startup")
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("Could not verify MinIO bucket policy on startup: %s", exc)
+
     yield
 
     # Shutdown — close Redis connection
@@ -51,7 +60,19 @@ def create_app() -> FastAPI:
         lifespan=lifespan,
     )
 
-    # CORS — restrict methods/headers to only what the frontend needs
+    # Middleware registration order matters in Starlette: add_middleware() is LIFO —
+    # the LAST registered middleware becomes the OUTERMOST wrapper.
+    # CORS must be outermost so that ALL responses (including CSRF 403s, rate-limit
+    # 429s, and unhandled 500s) carry the Access-Control-Allow-Origin header.
+    # Order: CORS (outermost) → RateLimit → CSRF → App (innermost)
+
+    # Global rate limiting — per-IP caps on all API routes
+    app.add_middleware(RateLimitMiddleware)
+
+    # CSRF — block cross-origin state-mutating requests
+    app.add_middleware(CSRFMiddleware, allowed_origins=settings.CORS_ORIGINS)
+
+    # CORS — must be registered LAST so it wraps everything else
     app.add_middleware(
         CORSMiddleware,
         allow_origins=settings.CORS_ORIGINS,
@@ -59,12 +80,6 @@ def create_app() -> FastAPI:
         allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
         allow_headers=["Authorization", "Content-Type", "X-Webhook-Secret"],
     )
-
-    # CSRF — block cross-origin state-mutating requests
-    app.add_middleware(CSRFMiddleware, allowed_origins=settings.CORS_ORIGINS)
-
-    # Global rate limiting — per-IP caps on all API routes
-    app.add_middleware(RateLimitMiddleware)
 
     # Simple liveness probe — no DB / Redis dependency
     @app.get("/ping", tags=["health"])

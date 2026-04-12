@@ -41,6 +41,8 @@ export default function ConversationPage() {
       const msgs = await messageApi.getMessages(id);
       const data = msgs.data;
       setMessages(Array.isArray(data) ? data : data.items || []);
+      // Silently mark any newly-received messages as read
+      messageApi.markConversationRead(id).catch(() => {/* best-effort */});
     } catch {
       // silent
     }
@@ -56,6 +58,8 @@ export default function ConversationPage() {
         const data = msgRes.data;
         setMessages(Array.isArray(data) ? data : data.items || []);
         setConvMeta(convRes.data);
+        // Mark all incoming messages as read now that the user is viewing them
+        messageApi.markConversationRead(id).catch(() => {/* best-effort */});
       } catch {
         toast.error("Conversation not found");
         router.push("/messages");

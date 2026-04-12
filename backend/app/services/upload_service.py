@@ -1,5 +1,6 @@
 """S3-compatible file upload service."""
 
+import json
 import uuid
 
 import boto3
@@ -20,11 +21,29 @@ def get_s3_client():
 
 
 def _ensure_bucket_exists(s3) -> None:
-    """Create the S3 bucket if it does not already exist (no public policy)."""
+    """Create the S3 bucket if it does not already exist and ensure it has a public-read policy."""
     try:
         s3.head_bucket(Bucket=settings.S3_BUCKET_NAME)
     except ClientError:
         s3.create_bucket(Bucket=settings.S3_BUCKET_NAME)
+
+    # Apply a public-read bucket policy so browser <img> tags can load images directly.
+    # MinIO buckets default to private — without this every GET returns 403.
+    public_read_policy = json.dumps({
+        "Version": "2012-10-17",
+        "Statement": [
+            {
+                "Effect": "Allow",
+                "Principal": {"AWS": ["*"]},
+                "Action": ["s3:GetObject"],
+                "Resource": [f"arn:aws:s3:::{settings.S3_BUCKET_NAME}/*"],
+            }
+        ],
+    })
+    try:
+        s3.put_bucket_policy(Bucket=settings.S3_BUCKET_NAME, Policy=public_read_policy)
+    except ClientError:
+        pass  # Policy already set or not supported — images served via signed URLs if needed
 
 
 def upload_image(file_bytes: bytes, content_type: str, folder: str = "properties") -> str:

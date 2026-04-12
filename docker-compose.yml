@@ -165,6 +165,12 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        # NEXT_PUBLIC_* vars must be baked in at build time — Next.js inlines them.
+        # Values are read from the root .env file (or host shell environment).
+        - NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1
+        - NEXT_PUBLIC_APP_URL=http://localhost:3000
+        - NEXT_PUBLIC_MAPBOX_TOKEN=${NEXT_PUBLIC_MAPBOX_TOKEN}
     ports:
       - "3000:3000"
     environment:

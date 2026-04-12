@@ -17,19 +17,25 @@ export default function MessagesPage() {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const load = async () => {
+    try {
+      const res = await messageApi.listConversations();
+      const data = res.data;
+      setConversations(Array.isArray(data) ? data : data.items || []);
+    } catch {
+      setConversations([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const load = async () => {
-      try {
-        const res = await messageApi.listConversations();
-        const data = res.data;
-        setConversations(Array.isArray(data) ? data : data.items || []);
-      } catch {
-        setConversations([]);
-      } finally {
-        setLoading(false);
-      }
-    };
     load();
+    // Re-fetch when the tab regains focus so unread counts reflect recent reads
+    const onFocus = () => load();
+    window.addEventListener("focus", onFocus);
+    return () => window.removeEventListener("focus", onFocus);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (

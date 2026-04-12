@@ -32,10 +32,13 @@ export default function DashboardPage() {
   });
 
   useEffect(() => {
+    // Wait for backendId before fetching — fetching without it returns all
+    // properties (no host_id filter) causing stats to flash incorrect values.
+    if (!user?.backendId) return;
     const load = async () => {
       try {
         const [propertiesRes, bookingsRes, reviewsRes] = await Promise.all([
-          propertyApi.search(user?.backendId ? { host_id: user.backendId } : {}).catch(() => ({ data: [] })),
+          propertyApi.search({ host_id: user.backendId! }).catch(() => ({ data: [] })),
           bookingApi.list().catch(() => ({ data: [] })),
           reviewApi.hostReviews().catch(() => ({ data: [] })),
         ]);
