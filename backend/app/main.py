@@ -37,7 +37,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     # Ensure MinIO bucket exists and has a public-read policy so browser <img>
     # tags can load uploaded images directly without 403 Access Denied errors.
     try:
-        from app.services.upload_service import get_s3_client, _ensure_bucket_exists
+        from app.services.upload_service import _ensure_bucket_exists, get_s3_client
         _ensure_bucket_exists(get_s3_client())
         logger.info("MinIO bucket policy verified on startup")
     except Exception as exc:  # noqa: BLE001
