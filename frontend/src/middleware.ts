@@ -19,9 +19,9 @@ function matchesAny(pathname: string, paths: string[]) {
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Always allow auth API routes, static assets, and public pages
+  // Always allow API routes, static assets, and public pages
   if (
-    pathname.startsWith("/api/auth") ||
+    pathname.startsWith("/api/") ||
     pathname.startsWith("/_next") ||
     pathname.includes(".") ||
     isPublic(pathname)

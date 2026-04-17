@@ -176,10 +176,13 @@ services:
     environment:
       - NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1
       - NEXT_PUBLIC_APP_URL=http://localhost:3000
+      # Internal URL for server-side API calls (container-to-container)
+      - INTERNAL_API_URL=http://api:8000/api/v1
       # BetterAuth — connects to the same Postgres as the backend
       - DATABASE_URL=postgresql://staynest:${POSTGRES_PASSWORD:-staynest_secret}@db:5432/staynest
       - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET:-change-me-generate-with-openssl-rand-base64-32}
       - BETTER_AUTH_URL=http://localhost:3000
+      - GROQ_API_KEY=${GROQ_API_KEY:-your_groq_api_key_here}
     depends_on:
       db:
         condition: service_healthy
