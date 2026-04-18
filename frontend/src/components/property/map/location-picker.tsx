@@ -393,7 +393,7 @@ export default function LocationPicker({
             >
               <div className="flex flex-col items-center">
                 <Navigation
-                  className="h-8 w-8 text-rose-600 drop-shadow-lg"
+                  className="h-8 w-8 text-primary-600 drop-shadow-lg"
                   fill="currentColor"
                   strokeWidth={1}
                 />

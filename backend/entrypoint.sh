@@ -1,8 +1,8 @@
 #!/bin/sh
 set -e
 
-echo "Running database migrations..."
-python -m alembic upgrade head
+# Migrations are handled by the dedicated 'migrate' service in docker-compose.
+# This entrypoint only starts the application.
 
 echo "Starting application..."
 exec "$@"

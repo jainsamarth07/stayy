@@ -18,7 +18,7 @@ export default function ImageGallery({ images, title }: ImageGalleryProps) {
         <div className="sticky top-0 bg-white border-b z-10 px-6 py-4 flex items-center">
           <button
             onClick={() => setShowAll(false)}
-            className="flex items-center gap-2 text-sm font-semibold hover:bg-neutral-100 rounded-full p-2 transition"
+            className="flex items-center gap-2 text-sm font-semibold hover:bg-stone-100 rounded-full p-2 transition"
           >
             <X className="h-5 w-5" />
           </button>
@@ -35,7 +35,7 @@ export default function ImageGallery({ images, title }: ImageGalleryProps) {
                 className="w-full rounded-lg object-cover"
               />
               {img.caption && (
-                <p className="text-sm text-neutral-500 mt-2 px-1">{img.caption}</p>
+                <p className="text-sm text-stone-500 mt-2 px-1">{img.caption}</p>
               )}
             </div>
           ))}
@@ -47,7 +47,7 @@ export default function ImageGallery({ images, title }: ImageGalleryProps) {
   return (
     <div className="relative">
       {displayImages.length === 1 ? (
-        <div className="aspect-[16/9] rounded-xl overflow-hidden bg-neutral-100 cursor-pointer" onClick={() => setShowAll(true)}>
+        <div className="aspect-[16/9] rounded-xl overflow-hidden bg-stone-100 cursor-pointer" onClick={() => setShowAll(true)}>
           <img
             src={displayImages[0].url}
             alt={title}
@@ -55,9 +55,9 @@ export default function ImageGallery({ images, title }: ImageGalleryProps) {
           />
         </div>
       ) : (
-        <div className="grid grid-cols-4 grid-rows-2 gap-2 rounded-xl overflow-hidden h-[60vh] max-h-[500px]">
+        <div className="grid grid-cols-3 grid-rows-2 gap-2 rounded-xl overflow-hidden h-[60vh] max-h-[500px]">
           {/* Main image */}
-          <div className="col-span-2 row-span-2 bg-neutral-100 cursor-pointer" onClick={() => setShowAll(true)}>
+          <div className="col-span-2 row-span-2 bg-stone-100 cursor-pointer" onClick={() => setShowAll(true)}>
             <img
               src={displayImages[0].url}
               alt={title}
@@ -65,8 +65,8 @@ export default function ImageGallery({ images, title }: ImageGalleryProps) {
             />
           </div>
           {/* Side images */}
-          {displayImages.slice(1, 5).map((img, i) => (
-            <div key={i} className="bg-neutral-100 cursor-pointer" onClick={() => setShowAll(true)}>
+          {displayImages.slice(1, 3).map((img, i) => (
+            <div key={i} className="bg-stone-100 cursor-pointer" onClick={() => setShowAll(true)}>
               <img
                 src={img.url}
                 alt={`${title} - ${i + 2}`}
@@ -81,7 +81,7 @@ export default function ImageGallery({ images, title }: ImageGalleryProps) {
       {displayImages.length > 1 && (
         <button
           onClick={() => setShowAll(true)}
-          className="absolute bottom-4 right-4 bg-white border border-neutral-900 rounded-lg px-4 py-1.5 text-sm font-semibold flex items-center gap-2 hover:bg-neutral-50 transition"
+          className="absolute bottom-4 right-4 bg-white border border-stone-800 rounded-lg px-4 py-1.5 text-sm font-semibold flex items-center gap-2 hover:bg-stone-50 transition"
         >
           <Grid3x3 className="h-4 w-4" />
           Show all photos

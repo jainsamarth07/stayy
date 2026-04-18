@@ -91,7 +91,7 @@ function ResetPasswordPage() {
         </form>
 
         <p className="mt-4 text-center text-sm text-neutral-500">
-          <Link href="/auth/login" className="text-rose-500 font-semibold hover:underline">← Back to login</Link>
+          <Link href="/auth/login" className="text-primary-500 font-semibold hover:underline">← Back to login</Link>
         </p>
       </div>
     </div>

@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
-import { Nunito } from "next/font/google";
+import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import { ClientProviders } from "./client-providers";
 
-const nunito = Nunito({
+const jakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
-  variable: "--font-nunito",
+  variable: "--font-jakarta",
 });
 
 export const metadata: Metadata = {
@@ -21,7 +21,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={`${nunito.variable} font-sans min-h-screen antialiased`}>
+      <body className={`${jakarta.variable} font-sans min-h-screen antialiased`}>
         <ClientProviders>{children}</ClientProviders>
       </body>
     </html>

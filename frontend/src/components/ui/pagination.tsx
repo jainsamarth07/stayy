@@ -53,7 +53,7 @@ export function Pagination({ page, totalPages, onPageChange }: PaginationProps) 
             onClick={() => onPageChange(item as number)}
             className={`px-3 py-1.5 text-sm rounded-lg ${
               item === page
-                ? "bg-rose-600 text-white"
+                ? "bg-primary-600 text-white"
                 : "hover:bg-gray-100 text-gray-700"
             }`}
           >

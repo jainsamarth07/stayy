@@ -1,6 +1,6 @@
 /**
  * Tailwind CSS configuration.
- * Airbnb-inspired design system with rose palette and extended breakpoints.
+ * StayNest design system — warm terracotta palette with sage accents.
  * @type {import('tailwindcss').Config}
  */
 module.exports = {
@@ -9,26 +9,38 @@ module.exports = {
     extend: {
       colors: {
         primary: {
-          50: "#fff1f2",
-          100: "#ffe4e6",
-          200: "#fecdd3",
-          300: "#fda4af",
-          400: "#fb7185",
-          500: "#f43f5e",
-          600: "#e11d48",
-          700: "#be123c",
-          800: "#9f1239",
-          900: "#881337",
+          50: "#FDF4EF",
+          100: "#FAE5D8",
+          200: "#F5C9AD",
+          300: "#EDA97E",
+          400: "#E2854E",
+          500: "#C06B3E",
+          600: "#A35530",
+          700: "#843F24",
+          800: "#6B321D",
+          900: "#502618",
+        },
+        accent: {
+          50: "#F0F5F1",
+          100: "#DCE8DE",
+          200: "#B8D1BC",
+          300: "#8FB596",
+          400: "#6E9A76",
+          500: "#5E7A63",
+          600: "#4A6350",
+          700: "#3B4F40",
+          800: "#2D3D32",
+          900: "#1F2B23",
         },
       },
       maxWidth: {
-        container: "2520px",
+        container: "1440px",
       },
       screens: {
         "2xl": "1536px",
       },
       fontFamily: {
-        sans: ["var(--font-nunito)", "system-ui", "sans-serif"],
+        sans: ["var(--font-jakarta)", "system-ui", "sans-serif"],
       },
     },
   },

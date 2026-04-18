@@ -44,11 +44,11 @@ export default function Sidebar({ items, title }: SidebarProps) {
               href={item.href}
               className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
                 active
-                  ? "bg-rose-50 text-rose-700"
+                  ? "bg-primary-50 text-primary-700"
                   : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
               }`}
             >
-              <span className={active ? "text-rose-600" : "text-gray-400"}>
+              <span className={active ? "text-primary-600" : "text-gray-400"}>
                 {item.icon}
               </span>
               {item.label}

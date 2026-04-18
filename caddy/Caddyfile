@@ -1,0 +1,58 @@
+# Caddyfile — Reverse proxy with automatic HTTPS (Let's Encrypt).
+#
+# In development, use :80 as the site address (Caddy won't request certs).
+# In production, replace {$DOMAIN} with your domain or set the DOMAIN env var.
+
+{$DOMAIN:localhost} {
+	# ── Frontend (Next.js) ──
+	handle {
+		reverse_proxy frontend:3000
+	}
+
+	# ── Backend API ──
+	handle /api/* {
+		reverse_proxy api:8000
+	}
+
+	# ── Backend health / docs ──
+	handle /ping {
+		reverse_proxy api:8000
+	}
+	handle /health {
+		reverse_proxy api:8000
+	}
+	handle /docs {
+		reverse_proxy api:8000
+	}
+	handle /redoc {
+		reverse_proxy api:8000
+	}
+	handle /openapi.json {
+		reverse_proxy api:8000
+	}
+
+	# ── MinIO public bucket (serve images) ──
+	handle /storage/* {
+		uri strip_prefix /storage
+		reverse_proxy minio:9000
+	}
+
+	# Security headers
+	header {
+		X-Content-Type-Options nosniff
+		X-Frame-Options DENY
+		X-XSS-Protection "1; mode=block"
+		Referrer-Policy strict-origin-when-cross-origin
+		Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+		-Server
+	}
+
+	# Gzip compression
+	encode gzip
+
+	# Access logging
+	log {
+		output stdout
+		format json
+	}
+}

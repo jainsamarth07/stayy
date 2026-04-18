@@ -16,6 +16,18 @@ from app.core.rate_limiter import RateLimitMiddleware
 
 logger = logging.getLogger(__name__)
 
+# ── Sentry initialisation (no-op when SENTRY_DSN is empty) ──
+if settings.SENTRY_DSN:
+    import sentry_sdk
+    sentry_sdk.init(
+        dsn=settings.SENTRY_DSN,
+        environment=settings.APP_ENV,
+        release=settings.APP_VERSION,
+        traces_sample_rate=0.2,
+        profiles_sample_rate=0.1,
+        send_default_pii=False,
+    )
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:

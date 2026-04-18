@@ -99,12 +99,14 @@ function RegisterPage() {
         {/* Header */}
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-2 mb-2">
-            <svg viewBox="0 0 32 32" className="h-10 w-10 text-rose-500 fill-current">
-              <path d="M16 1c2.008 0 3.463.963 4.751 3.269l.533 1.025c1.954 3.83 6.114 12.54 7.1 14.836l.145.353c.667 1.591.91 2.472.96 3.396l.01.415.001.228c0 4.062-2.877 6.478-6.357 6.478-2.224 0-4.556-1.258-6.709-3.386l-.257-.26-.172-.179h-.001l-.176.185c-2.044 2.1-4.267 3.42-6.414 3.615l-.28.019-.267.006C5.377 31 2.5 28.584 2.5 24.522l.005-.469c.026-.928.23-1.768.83-3.244l.216-.524c.966-2.298 5.127-11.011 7.074-14.83l.54-1.036C12.537 1.963 13.992 1 16 1z" />
+            <svg viewBox="0 0 32 32" className="h-10 w-10 text-primary-500 fill-current">
+              <path d="M16 3C16 3 6 11 6 18c0 5.523 4.477 10 10 10s10-4.477 10-10C26 11 16 3 16 3z" opacity="0.2"/>
+              <path d="M16 2c-.4 0-.8.15-1.1.43C13.5 3.8 5 11.5 5 18c0 6.075 4.925 11 11 11s11-4.925 11-11c0-6.5-8.5-14.2-9.9-15.57A1.5 1.5 0 0016 2zm0 3.4C18.2 7.5 25 13.6 25 18c0 4.97-4.03 9-9 9s-9-4.03-9-9c0-4.4 6.8-10.5 9-12.6z"/>
+              <ellipse cx="16" cy="20" rx="4" ry="3" opacity="0.35"/>
             </svg>
           </div>
           <h1 className="text-2xl font-bold">Create your account</h1>
-          <p className="text-sm text-neutral-500 mt-1">Join StayNest — no commissions, ever.</p>
+          <p className="text-sm text-stone-500 mt-1">Join StayNest — no commissions, ever.</p>
         </div>
 
         {/* Social signup - only on step 1 */}
@@ -112,7 +114,7 @@ function RegisterPage() {
           <>
             <button
               onClick={handleGoogle}
-              className="w-full flex items-center justify-center gap-3 border rounded-lg py-2.5 px-4 text-sm font-semibold hover:bg-neutral-50 transition mb-4"
+              className="w-full flex items-center justify-center gap-3 border rounded-lg py-2.5 px-4 text-sm font-semibold hover:bg-stone-50 transition mb-4"
             >
               <svg viewBox="0 0 24 24" className="h-5 w-5">
                 <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -125,7 +127,7 @@ function RegisterPage() {
             <div className="relative mb-4">
               <div className="absolute inset-0 flex items-center"><div className="w-full border-t" /></div>
               <div className="relative flex justify-center text-sm">
-                <span className="bg-white px-3 text-neutral-500">or</span>
+                <span className="bg-white px-3 text-stone-500">or</span>
               </div>
             </div>
           </>
@@ -134,7 +136,7 @@ function RegisterPage() {
         {/* Progress bar */}
         <div className="flex gap-2 mb-6">
           {[1, 2].map((s) => (
-            <div key={s} className={`h-1 flex-1 rounded-full ${s <= step ? "bg-rose-500" : "bg-neutral-200"}`} />
+            <div key={s} className={`h-1 flex-1 rounded-full ${s <= step ? "bg-primary-500" : "bg-stone-200"}`} />
           ))}
         </div>
 
@@ -149,7 +151,7 @@ function RegisterPage() {
               <Input label="Phone (optional)" type="tel" placeholder="+1 (555) 000-0000" value={form.phone} onChange={(e) => update("phone", e.target.value)} autoComplete="tel" />
 
               <div>
-                <label className="block text-xs font-semibold text-neutral-700 mb-2">I want to…</label>
+                <label className="block text-xs font-semibold text-stone-700 mb-2">I want to…</label>
                 <div className="grid grid-cols-2 gap-3">
                   {[
                     { value: "user" as const, label: "Book stays", desc: "Find amazing places" },
@@ -159,10 +161,10 @@ function RegisterPage() {
                       key={opt.value}
                       type="button"
                       onClick={() => update("role", opt.value)}
-                      className={`p-3 rounded-xl border-2 text-left transition ${form.role === opt.value ? "border-rose-500 bg-rose-50" : "border-neutral-200 hover:border-neutral-300"}`}
+                      className={`p-3 rounded-xl border-2 text-left transition ${form.role === opt.value ? "border-primary-500 bg-primary-50" : "border-stone-200 hover:border-stone-300"}`}
                     >
                       <p className="text-sm font-semibold">{opt.label}</p>
-                      <p className="text-xs text-neutral-500">{opt.desc}</p>
+                      <p className="text-xs text-stone-500">{opt.desc}</p>
                     </button>
                   ))}
                 </div>
@@ -185,8 +187,8 @@ function RegisterPage() {
                   { test: /\d/.test(form.password), label: "One number" },
                 ].map((rule) => (
                   <div key={rule.label} className="flex items-center gap-2 text-xs">
-                    <span className={rule.test ? "text-green-500" : "text-neutral-300"}>{rule.test ? "✓" : "○"}</span>
-                    <span className={rule.test ? "text-green-700" : "text-neutral-500"}>{rule.label}</span>
+                    <span className={rule.test ? "text-green-500" : "text-stone-300"}>{rule.test ? "✓" : "○"}</span>
+                    <span className={rule.test ? "text-green-700" : "text-stone-500"}>{rule.label}</span>
                   </div>
                 ))}
               </div>
@@ -196,13 +198,13 @@ function RegisterPage() {
                   type="checkbox"
                   checked={form.agree_terms}
                   onChange={(e) => update("agree_terms", e.target.checked)}
-                  className="mt-1 rounded border-neutral-300 text-rose-500 focus:ring-rose-500"
+                  className="mt-1 rounded border-stone-300 text-primary-500 focus:ring-primary-500"
                 />
-                <span className="text-sm text-neutral-600">
+                <span className="text-sm text-stone-600">
                   I agree to the{" "}
-                  <Link href="/terms" className="text-rose-500 hover:underline">Terms</Link>
+                  <Link href="/terms" className="text-primary-500 hover:underline">Terms</Link>
                   {" "}and{" "}
-                  <Link href="/privacy" className="text-rose-500 hover:underline">Privacy Policy</Link>
+                  <Link href="/privacy" className="text-primary-500 hover:underline">Privacy Policy</Link>
                 </span>
               </label>
               {errors.agree_terms && <p className="text-sm text-red-600">{errors.agree_terms}</p>}
@@ -215,9 +217,9 @@ function RegisterPage() {
           )}
         </form>
 
-        <p className="text-center text-sm text-neutral-500 mt-6">
+        <p className="text-center text-sm text-stone-500 mt-6">
           Already have an account?{" "}
-          <Link href="/auth/login" className="text-rose-500 font-semibold hover:underline">Log in</Link>
+          <Link href="/auth/login" className="text-primary-500 font-semibold hover:underline">Log in</Link>
         </p>
       </div>
     </div>

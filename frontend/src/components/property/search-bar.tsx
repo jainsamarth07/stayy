@@ -67,7 +67,7 @@ export default function SearchBar({ filters, onChange, onSearch, compact }: Sear
               value={filters.location}
               onChange={(e) => update("location", e.target.value)}
               placeholder="Search destinations"
-              className="w-full text-sm bg-transparent border-0 p-0 focus:outline-none focus:ring-0 placeholder:text-neutral-400 text-neutral-600"
+              className="w-full text-sm bg-transparent border-0 p-0 focus:outline-none focus:ring-0 placeholder:text-stone-400 text-stone-600"
             />
           </div>
           <div className="px-6 py-3 hidden sm:block">
@@ -76,7 +76,7 @@ export default function SearchBar({ filters, onChange, onSearch, compact }: Sear
               type="date"
               value={filters.check_in}
               onChange={(e) => update("check_in", e.target.value)}
-              className="w-full text-sm bg-transparent border-0 p-0 focus:outline-none focus:ring-0 text-neutral-600"
+              className="w-full text-sm bg-transparent border-0 p-0 focus:outline-none focus:ring-0 text-stone-600"
             />
           </div>
           <div className="px-6 py-3 hidden sm:block">
@@ -87,13 +87,13 @@ export default function SearchBar({ filters, onChange, onSearch, compact }: Sear
               max={20}
               value={filters.guests}
               onChange={(e) => update("guests", parseInt(e.target.value) || 1)}
-              className="w-full text-sm bg-transparent border-0 p-0 focus:outline-none focus:ring-0 text-neutral-600"
+              className="w-full text-sm bg-transparent border-0 p-0 focus:outline-none focus:ring-0 text-stone-600"
             />
           </div>
         </div>
         <button
           onClick={onSearch}
-          className="bg-rose-500 hover:bg-rose-600 text-white rounded-full p-3 m-2 transition-colors"
+          className="bg-primary-500 hover:bg-primary-600 text-white rounded-full p-3 m-2 transition-colors"
         >
           <Search className="h-4 w-4" />
         </button>

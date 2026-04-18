@@ -85,7 +85,7 @@ export default function MessagesPage() {
                   </p>
                 </div>
                 {conv.unread_count > 0 && (
-                  <span className="bg-rose-600 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center shrink-0">
+                  <span className="bg-primary-600 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center shrink-0">
                     {conv.unread_count}
                   </span>
                 )}

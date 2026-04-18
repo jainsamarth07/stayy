@@ -151,7 +151,7 @@ export default function MembershipPage() {
               key={plan.tier}
               className={`relative rounded-xl border-2 p-6 ${
                 plan.popular
-                  ? "border-rose-500 shadow-lg"
+                  ? "border-primary-500 shadow-lg"
                   : isCurrent
                   ? "border-green-500"
                   : "border-gray-200"

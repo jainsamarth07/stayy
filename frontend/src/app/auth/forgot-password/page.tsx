@@ -37,8 +37,10 @@ export default function ForgotPasswordPage() {
     <div className="min-h-[80vh] flex items-center justify-center px-4">
       <div className="w-full max-w-md text-center">
         <div className="flex items-center justify-center mb-6">
-          <svg viewBox="0 0 32 32" className="h-10 w-10 text-rose-500 fill-current">
-            <path d="M16 1c2.008 0 3.463.963 4.751 3.269l.533 1.025c1.954 3.83 6.114 12.54 7.1 14.836l.145.353c.667 1.591.91 2.472.96 3.396l.01.415.001.228c0 4.062-2.877 6.478-6.357 6.478-2.224 0-4.556-1.258-6.709-3.386l-.257-.26-.172-.179h-.001l-.176.185c-2.044 2.1-4.267 3.42-6.414 3.615l-.28.019-.267.006C5.377 31 2.5 28.584 2.5 24.522l.005-.469c.026-.928.23-1.768.83-3.244l.216-.524c.966-2.298 5.127-11.011 7.074-14.83l.54-1.036C12.537 1.963 13.992 1 16 1z" />
+          <svg viewBox="0 0 32 32" className="h-10 w-10 text-primary-500 fill-current">
+            <path d="M16 3C16 3 6 11 6 18c0 5.523 4.477 10 10 10s10-4.477 10-10C26 11 16 3 16 3z" opacity="0.2"/>
+            <path d="M16 2c-.4 0-.8.15-1.1.43C13.5 3.8 5 11.5 5 18c0 6.075 4.925 11 11 11s11-4.925 11-11c0-6.5-8.5-14.2-9.9-15.57A1.5 1.5 0 0016 2zm0 3.4C18.2 7.5 25 13.6 25 18c0 4.97-4.03 9-9 9s-9-4.03-9-9c0-4.4 6.8-10.5 9-12.6z"/>
+            <ellipse cx="16" cy="20" rx="4" ry="3" opacity="0.35"/>
           </svg>
         </div>
 
@@ -50,7 +52,7 @@ export default function ForgotPasswordPage() {
               </svg>
             </div>
             <h1 className="text-2xl font-bold mb-2">Check your email</h1>
-            <p className="text-sm text-neutral-500 mb-6">
+            <p className="text-sm text-stone-500 mb-6">
               We sent a password reset link to <strong>{email}</strong>
             </p>
             <Button variant="outline" onClick={() => setSent(false)}>Try another email</Button>
@@ -58,7 +60,7 @@ export default function ForgotPasswordPage() {
         ) : (
           <>
             <h1 className="text-2xl font-bold mb-2">Forgot your password?</h1>
-            <p className="text-sm text-neutral-500 mb-6">
+            <p className="text-sm text-stone-500 mb-6">
               Enter your email and we&apos;ll send you a reset link.
             </p>
             <form onSubmit={handleSubmit} className="space-y-4 text-left">
@@ -68,8 +70,8 @@ export default function ForgotPasswordPage() {
           </>
         )}
 
-        <p className="text-sm text-neutral-500 mt-6">
-          <Link href="/auth/login" className="text-rose-500 font-semibold hover:underline">
+        <p className="text-sm text-stone-500 mt-6">
+          <Link href="/auth/login" className="text-primary-500 font-semibold hover:underline">
             ← Back to login
           </Link>
         </p>

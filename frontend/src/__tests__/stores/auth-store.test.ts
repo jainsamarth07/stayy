@@ -9,6 +9,7 @@ const mockUser: AuthUser = {
   full_name: "Test User",
   name: "Test User",
   role: "user",
+  backendId: null,
 };
 
 describe("useAuthStore", () => {

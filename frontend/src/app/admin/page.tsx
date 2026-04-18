@@ -57,7 +57,7 @@ export default function AdminDashboardPage() {
     { label: "Total Users", value: stats.totalUsers.toLocaleString(), color: "text-blue-600" },
     { label: "Properties", value: stats.totalProperties.toLocaleString(), color: "text-green-600" },
     { label: "Total Bookings", value: stats.totalBookings.toLocaleString(), color: "text-purple-600" },
-    { label: "Active Members", value: stats.activeMembers.toLocaleString(), color: "text-rose-600" },
+    { label: "Active Members", value: stats.activeMembers.toLocaleString(), color: "text-primary-600" },
     { label: "Monthly Revenue", value: `₹${stats.monthlyRevenue.toLocaleString()}`, color: "text-emerald-600" },
   ];
 
@@ -85,8 +85,8 @@ export default function AdminDashboardPage() {
               { label: "Manage Bookings", href: "/admin/bookings" },
               { label: "Manage Memberships", href: "/admin/memberships" },
             ].map((link) => (
-              <a key={link.href} href={link.href} className="flex items-center gap-3 text-sm text-rose-600 hover:text-rose-800 font-medium">
-                <div className="h-2 w-2 rounded-full bg-rose-400 shrink-0" />
+              <a key={link.href} href={link.href} className="flex items-center gap-3 text-sm text-primary-600 hover:text-primary-800 font-medium">
+                <div className="h-2 w-2 rounded-full bg-primary-400 shrink-0" />
                 {link.label}
               </a>
             ))}

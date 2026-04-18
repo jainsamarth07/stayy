@@ -61,7 +61,7 @@ function PropertyCards({ data }: { data: PropertyResult }) {
                 </p>
                 <p className="text-xs text-neutral-500">{p.city}</p>
                 <div className="flex items-center justify-between mt-1">
-                  <span className="text-xs font-semibold text-rose-500">
+                  <span className="text-xs font-semibold text-primary-500">
                     ₹{p.price_per_night.toLocaleString("en-IN")}/night
                   </span>
                   <ExternalLink className="h-3 w-3 text-neutral-400" />
@@ -148,7 +148,7 @@ export default function AiAgentChat() {
       {/* Toggle button */}
       <button
         onClick={toggleChat}
-        className="fixed bottom-5 right-5 z-50 flex items-center justify-center h-12 w-12 rounded-full bg-rose-500 text-white shadow-lg hover:bg-rose-600 active:scale-95 transition-all"
+        className="fixed bottom-5 right-5 z-50 flex items-center justify-center h-12 w-12 rounded-full bg-primary-500 text-white shadow-lg hover:bg-primary-600 active:scale-95 transition-all"
         aria-label="Toggle AI assistant"
       >
         {isOpen ? <X className="h-5 w-5" /> : <Sparkles className="h-5 w-5" />}
@@ -160,7 +160,7 @@ export default function AiAgentChat() {
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-100 bg-neutral-50">
             <div className="flex items-center gap-2">
-              <Sparkles className="h-4 w-4 text-rose-500" />
+              <Sparkles className="h-4 w-4 text-primary-500" />
               <span className="text-sm font-semibold text-neutral-900">
                 StayNest Assistant
               </span>
@@ -178,7 +178,7 @@ export default function AiAgentChat() {
           <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-3">
             {messages.length === 0 && (
               <div className="flex flex-col items-center justify-center h-full gap-4 text-center">
-                <Sparkles className="h-8 w-8 text-rose-300" />
+                <Sparkles className="h-8 w-8 text-primary-300" />
                 <p className="text-sm text-neutral-500">
                   Hi! I can help you find properties and plan trips.
                 </p>
@@ -205,7 +205,7 @@ export default function AiAgentChat() {
                         key={idx}
                         className={`max-w-[85%] rounded-lg px-3 py-2 text-sm whitespace-pre-wrap ${
                           msg.role === "user"
-                            ? "ml-auto bg-rose-500 text-white"
+                            ? "ml-auto bg-primary-500 text-white"
                             : "bg-neutral-100 text-neutral-800"
                         }`}
                       >
@@ -260,7 +260,7 @@ export default function AiAgentChat() {
             <button
               type="submit"
               disabled={isLoading || !input.trim()}
-              className="flex items-center justify-center h-8 w-8 rounded-lg bg-rose-500 text-white disabled:opacity-40 hover:bg-rose-600 transition-colors"
+              className="flex items-center justify-center h-8 w-8 rounded-lg bg-primary-500 text-white disabled:opacity-40 hover:bg-primary-600 transition-colors"
               aria-label="Send message"
             >
               <Send className="h-4 w-4" />

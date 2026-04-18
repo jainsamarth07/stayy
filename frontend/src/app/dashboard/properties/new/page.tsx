@@ -198,7 +198,7 @@ export default function NewPropertyPage() {
                   step > i + 1
                     ? "bg-green-100 text-green-700"
                     : step === i + 1
-                    ? "bg-rose-600 text-white"
+                    ? "bg-primary-600 text-white"
                     : "bg-gray-100 text-gray-400"
                 }`}
               >
@@ -265,7 +265,7 @@ export default function NewPropertyPage() {
                     onClick={() => toggleAmenity(amenity)}
                     className={`px-3 py-1.5 rounded-full text-sm border transition ${
                       form.amenities.includes(amenity)
-                        ? "bg-rose-50 border-rose-300 text-rose-700"
+                        ? "bg-primary-50 border-primary-300 text-primary-700"
                         : "border-gray-200 text-gray-600 hover:border-gray-300"
                     }`}
                   >
@@ -338,7 +338,7 @@ export default function NewPropertyPage() {
                   type="checkbox"
                   checked={form.enable_hourly}
                   onChange={(e) => update("enable_hourly", e.target.checked)}
-                  className="rounded border-gray-300 text-rose-600 focus:ring-rose-500"
+                  className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
                 />
                 <div>
                   <p className="text-sm font-medium text-gray-900">Enable hourly bookings</p>
@@ -384,7 +384,7 @@ export default function NewPropertyPage() {
               <p className="text-xs text-gray-500 mb-3">
                 Upload high-quality images. The first image (or the one you mark) will be the cover photo.
               </p>
-              <label className="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:border-rose-400 hover:bg-rose-50 transition">
+              <label className="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:border-primary-400 hover:bg-primary-50 transition">
                 <svg
                   className="h-10 w-10 text-gray-400 mb-2"
                   fill="none"
@@ -416,7 +416,7 @@ export default function NewPropertyPage() {
                   <div
                     key={img.preview}
                     className={`relative group rounded-lg overflow-hidden border-2 ${
-                      img.isPrimary ? "border-rose-500" : "border-gray-200"
+                      img.isPrimary ? "border-primary-500" : "border-gray-200"
                     }`}
                   >
                     <img
@@ -425,7 +425,7 @@ export default function NewPropertyPage() {
                       className="w-full h-32 object-cover"
                     />
                     {img.isPrimary && (
-                      <span className="absolute top-1.5 left-1.5 bg-rose-600 text-white text-xs font-medium px-2 py-0.5 rounded-full">
+                      <span className="absolute top-1.5 left-1.5 bg-primary-600 text-white text-xs font-medium px-2 py-0.5 rounded-full">
                         Cover
                       </span>
                     )}

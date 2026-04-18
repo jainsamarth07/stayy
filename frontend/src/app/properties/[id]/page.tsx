@@ -11,7 +11,7 @@ import { toast } from "@/components/ui/toast";
 import { propertyApi, bookingApi, reviewApi, messageApi, getApiError } from "@/lib/api";
 import { useAuthStore } from "@/stores/auth-store";
 import type { Property, Review } from "@/types";
-import { Star, Share, Heart, Shield, Sparkles, MapPin, Check } from "lucide-react";
+import { Star, Share, Bookmark, Shield, Sparkles, MapPin, Check } from "lucide-react";
 
 export default function PropertyDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -146,23 +146,23 @@ export default function PropertyDetailPage() {
             )}
             {reviews.length > 0 && (
               <>
-                <span className="text-neutral-500">·</span>
+                <span className="text-stone-500">·</span>
                 <span className="underline font-semibold">{reviews.length} reviews</span>
               </>
             )}
-            <span className="text-neutral-500">·</span>
+            <span className="text-stone-500">·</span>
             <span className="underline font-semibold flex items-center gap-1">
               <MapPin className="h-3.5 w-3.5" />
               {property.city}
             </span>
           </div>
           <div className="flex items-center gap-3">
-            <button className="flex items-center gap-1.5 text-sm font-semibold underline hover:bg-neutral-50 rounded-lg px-2 py-1.5 transition">
+            <button className="flex items-center gap-1.5 text-sm font-semibold underline hover:bg-stone-50 rounded-lg px-2 py-1.5 transition">
               <Share className="h-4 w-4" />
               Share
             </button>
-            <button className="flex items-center gap-1.5 text-sm font-semibold underline hover:bg-neutral-50 rounded-lg px-2 py-1.5 transition">
-              <Heart className="h-4 w-4" />
+            <button className="flex items-center gap-1.5 text-sm font-semibold underline hover:bg-stone-50 rounded-lg px-2 py-1.5 transition">
+              <Bookmark className="h-4 w-4" />
               Save
             </button>
           </div>
@@ -185,7 +185,7 @@ export default function PropertyDetailPage() {
               <h2 className="text-[22px] font-semibold">
                 Entire place hosted on StayNest
               </h2>
-              <p className="text-neutral-500 mt-1">
+              <p className="text-stone-500 mt-1">
                 {property.max_guests} guests
               </p>
             </div>
@@ -203,22 +203,22 @@ export default function PropertyDetailPage() {
               { icon: Shield, title: "Free cancellation", desc: "Full refund if plans change — no questions asked." },
             ].map((h) => (
               <div key={h.title} className="flex items-start gap-5">
-                <h.icon className="h-6 w-6 mt-0.5 text-neutral-700 shrink-0" strokeWidth={1.5} />
+                <h.icon className="h-6 w-6 mt-0.5 text-stone-700 shrink-0" strokeWidth={1.5} />
                 <div>
                   <p className="font-semibold">{h.title}</p>
-                  <p className="text-sm text-neutral-500 mt-0.5">{h.desc}</p>
+                  <p className="text-sm text-stone-500 mt-0.5">{h.desc}</p>
                 </div>
               </div>
             ))}
           </div>
 
-          {/* StayNest Cover */}
+          {/* Booking protection */}
           <div className="pb-8 border-b">
             <div className="flex items-center gap-2 mb-3">
-              <span className="text-rose-500 font-bold text-lg">staynest</span>
-              <span className="text-lg font-light">cover</span>
+              <Shield className="h-5 w-5 text-accent-600" />
+              <span className="font-semibold text-stone-800">Booking Protection</span>
             </div>
-            <p className="text-sm text-neutral-500 leading-relaxed">
+            <p className="text-sm text-stone-500 leading-relaxed">
               Every booking includes free protection from Host cancellations, listing inaccuracies, and other issues like trouble checking in.
             </p>
           </div>
@@ -237,8 +237,8 @@ export default function PropertyDetailPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {property.amenities.map((amenity) => (
                   <div key={amenity} className="flex items-center gap-4 py-1">
-                    <Check className="h-5 w-5 text-neutral-600" strokeWidth={1.5} />
-                    <span className="text-neutral-700">{amenity}</span>
+                    <Check className="h-5 w-5 text-stone-600" strokeWidth={1.5} />
+                    <span className="text-stone-700">{amenity}</span>
                   </div>
                 ))}
               </div>
@@ -269,7 +269,7 @@ export default function PropertyDetailPage() {
                       <Avatar fallback="G" size="sm" />
                       <div>
                         <p className="text-sm font-semibold">Guest</p>
-                        <p className="text-xs text-neutral-500">
+                        <p className="text-xs text-stone-500">
                           {new Date(review.created_at).toLocaleDateString("en-US", {
                             month: "long",
                             year: "numeric",
@@ -278,7 +278,7 @@ export default function PropertyDetailPage() {
                       </div>
                     </div>
                     <StarRating rating={review.rating} size="sm" />
-                    <p className="text-sm text-neutral-600 mt-2 leading-relaxed line-clamp-4">{review.comment}</p>
+                    <p className="text-sm text-stone-600 mt-2 leading-relaxed line-clamp-4">{review.comment}</p>
                   </div>
                 ))}
               </div>
@@ -293,11 +293,11 @@ export default function PropertyDetailPage() {
               <span className="text-[22px] font-semibold">
                 ₹{property.price_per_night}
               </span>
-              <span className="text-neutral-500">night</span>
+              <span className="text-stone-500">night</span>
             </div>
 
             {property.hourly_config?.hourly_price && (
-              <p className="text-sm text-neutral-500">
+              <p className="text-sm text-stone-500">
                 Also available hourly at ₹{property.hourly_config.hourly_price}/hr
               </p>
             )}
@@ -345,28 +345,28 @@ export default function PropertyDetailPage() {
               onClick={handleBook}
               loading={bookingLoading}
               size="lg"
-              className="bg-gradient-to-r from-rose-500 to-pink-600 hover:from-rose-600 hover:to-pink-700 rounded-xl text-base"
+              className="bg-primary-500 hover:bg-primary-600 rounded-xl text-base"
             >
               {nights > 0 ? "Reserve" : "Check availability"}
             </Button>
 
-            <p className="text-center text-xs text-neutral-500">You won&apos;t be charged yet</p>
+            <p className="text-center text-xs text-stone-500">You won&apos;t be charged yet</p>
 
             {/* Price breakdown */}
             {nights > 0 && (
               <div className="space-y-3 pt-4 border-t">
                 <div className="flex justify-between text-sm">
-                  <span className="underline text-neutral-700">
+                  <span className="underline text-stone-700">
                     ₹{property.price_per_night} x {nights} night{nights !== 1 ? "s" : ""}
                   </span>
                   <span>₹{totalPrice}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="underline text-neutral-700">Cleaning fee</span>
+                  <span className="underline text-stone-700">Cleaning fee</span>
                   <span>₹0</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="underline text-neutral-700">StayNest service fee</span>
+                  <span className="underline text-stone-700">Service fee</span>
                   <span>₹0</span>
                 </div>
                 <div className="flex justify-between font-semibold pt-3 border-t text-base">
@@ -379,7 +379,7 @@ export default function PropertyDetailPage() {
             {/* Contact Host */}
             <button
               onClick={() => setShowContact(!showContact)}
-              className="w-full text-center text-sm text-neutral-600 hover:text-neutral-800 font-semibold underline transition"
+              className="w-full text-center text-sm text-stone-600 hover:text-stone-800 font-semibold underline transition"
             >
               {showContact ? "Cancel" : "Contact Host"}
             </button>

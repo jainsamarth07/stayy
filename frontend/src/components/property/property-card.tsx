@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { Heart, ChevronLeft, ChevronRight, Star } from "lucide-react";
+import { Bookmark, ChevronLeft, ChevronRight, Star } from "lucide-react";
 import { motion } from "framer-motion";
 import type { Property } from "@/types";
 
@@ -43,7 +43,7 @@ export default function PropertyCard({ property, showHost = true }: PropertyCard
         onMouseLeave={() => setIsHovered(false)}
       >
         {/* Image */}
-        <div className="relative aspect-square rounded-xl overflow-hidden bg-neutral-100">
+        <div className="relative aspect-[4/3] rounded-2xl overflow-hidden bg-stone-100">
           <img
             src={mainImage}
             alt={property.title}
@@ -57,18 +57,14 @@ export default function PropertyCard({ property, showHost = true }: PropertyCard
               e.stopPropagation();
               setIsFavorited(!isFavorited);
             }}
-            className="absolute top-3 right-3 z-10 hover:scale-110 transition-transform"
-            aria-label="Toggle favorite"
+            className="absolute top-3 right-3 z-10 hover:scale-110 transition-transform bg-white/80 backdrop-blur-sm rounded-lg p-1.5 shadow-sm"
+            aria-label="Save listing"
           >
-            <Heart
-              className="h-7 w-7 absolute top-0 left-0 text-white/70 drop-shadow-md"
-              strokeWidth={2}
-            />
-            <Heart
-              className={`h-7 w-7 relative transition-colors ${
-                isFavorited ? "fill-rose-500 text-rose-500" : "fill-neutral-500/50 text-transparent"
+            <Bookmark
+              className={`h-5 w-5 transition-colors ${
+                isFavorited ? "fill-primary-500 text-primary-500" : "text-stone-600"
               }`}
-              strokeWidth={0}
+              strokeWidth={1.5}
             />
           </button>
 
@@ -115,7 +111,7 @@ export default function PropertyCard({ property, showHost = true }: PropertyCard
         {/* Details */}
         <div className="mt-3">
           <div className="flex items-start justify-between gap-2">
-            <h3 className="text-[15px] font-semibold text-neutral-900 truncate">
+            <h3 className="text-[15px] font-semibold text-stone-900 truncate">
               {property.city || property.title}
             </h3>
             <div className="flex items-center gap-1 shrink-0">
@@ -123,19 +119,19 @@ export default function PropertyCard({ property, showHost = true }: PropertyCard
               <span className="text-sm">New</span>
             </div>
           </div>
-          <p className="text-sm text-neutral-500 truncate mt-0.5">
+          <p className="text-sm text-stone-500 truncate mt-0.5">
             {property.title}
           </p>
-          <p className="text-sm text-neutral-500">
+          <p className="text-sm text-stone-500">
             Up to {property.max_guests} guests
           </p>
           <p className="mt-1.5">
             <span className="text-[15px] font-semibold">
               ₹{property.price_per_night}
             </span>
-            <span className="text-[15px] text-neutral-500"> night</span>
+            <span className="text-[15px] text-stone-500"> night</span>
             {property.hourly_config?.hourly_price && (
-              <span className="text-sm text-neutral-400 ml-1.5">
+              <span className="text-sm text-stone-400 ml-1.5">
                 · ₹{property.hourly_config.hourly_price}/hr
               </span>
             )}

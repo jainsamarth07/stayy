@@ -194,7 +194,7 @@ export default function EditPropertyPage() {
                 onClick={() => toggleAmenity(a)}
                 className={`px-3 py-1.5 rounded-full text-sm border transition-colors ${
                   form.amenities.includes(a)
-                    ? "bg-rose-50 border-rose-300 text-rose-700"
+                    ? "bg-primary-50 border-primary-300 text-primary-700"
                     : "bg-white border-gray-300 text-gray-600 hover:border-gray-400"
                 }`}
               >

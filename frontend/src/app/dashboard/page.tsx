@@ -79,7 +79,7 @@ export default function DashboardPage() {
   const statCards = [
     { label: "Total Listings", value: stats.totalProperties, color: "bg-blue-50 text-blue-700" },
     { label: "Active Bookings", value: stats.activeBookings, color: "bg-green-50 text-green-700" },
-    { label: "Total Earnings", value: `₹${stats.totalEarnings.toLocaleString()}`, color: "bg-rose-50 text-rose-700" },
+    { label: "Total Earnings", value: `₹${stats.totalEarnings.toLocaleString()}`, color: "bg-primary-50 text-primary-700" },
     { label: "Avg Rating", value: stats.averageRating > 0 ? stats.averageRating.toFixed(1) : "N/A", color: "bg-yellow-50 text-yellow-700" },
   ];
 

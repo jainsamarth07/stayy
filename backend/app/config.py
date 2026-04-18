@@ -45,6 +45,9 @@ class Settings(BaseSettings):
     # Webhook
     WEBHOOK_SECRET: str = "CHANGE-ME-webhook-secret"
 
+    # BetterAuth (validated in non-dev environments)
+    BETTER_AUTH_SECRET: str = "change-me-generate-with-openssl-rand-base64-32"
+
     # Email
     EMAIL_BACKEND: str = "console"  # "console" or "smtp"
     SMTP_HOST: str = "localhost"
@@ -57,12 +60,16 @@ class Settings(BaseSettings):
     # Rate Limiting
     RATE_LIMIT_PER_MINUTE: int = 60
 
+    # Sentry (leave empty to disable)
+    SENTRY_DSN: str = ""
+
     model_config = {"env_file": ".env", "env_file_encoding": "utf-8", "case_sensitive": True}
 
     def validate_secrets(self) -> None:
         """Raise at startup if critical secrets still have placeholder values."""
         default_jwt = "CHANGE-ME-use-openssl-rand-hex-64"
         default_webhook = "CHANGE-ME-webhook-secret"
+        default_betterauth = "change-me-generate-with-openssl-rand-base64-32"
         if self.APP_ENV != "development":
             if self.JWT_SECRET_KEY == default_jwt:
                 msg = (
@@ -73,6 +80,12 @@ class Settings(BaseSettings):
             if self.WEBHOOK_SECRET == default_webhook:
                 msg = (
                     "WEBHOOK_SECRET must be set via environment variable "
+                    "in non-development environments"
+                )
+                raise ValueError(msg)
+            if self.BETTER_AUTH_SECRET == default_betterauth:
+                msg = (
+                    "BETTER_AUTH_SECRET must be set via environment variable "
                     "in non-development environments"
                 )
                 raise ValueError(msg)

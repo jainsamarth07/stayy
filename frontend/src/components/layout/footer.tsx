@@ -2,21 +2,21 @@ import Link from "next/link";
 import { Globe } from "lucide-react";
 
 const footerSections = {
-  Support: [
+  "Help & Support": [
     { label: "Help Center", href: "#" },
-    { label: "Get help with a safety issue", href: "#" },
+    { label: "Safety information", href: "#" },
     { label: "Cancellation options", href: "#" },
     { label: "Accessibility", href: "#" },
     { label: "Report a concern", href: "#" },
   ],
-  Hosting: [
-    { label: "Become a Host", href: "/auth/register?role=host" },
+  "For Hosts": [
+    { label: "Start Hosting", href: "/auth/register?role=host" },
     { label: "Host resources", href: "#" },
     { label: "Community forum", href: "#" },
-    { label: "Hosting responsibly", href: "#" },
+    { label: "Responsible hosting", href: "#" },
     { label: "How it works", href: "#" },
   ],
-  StayNest: [
+  Company: [
     { label: "About", href: "#" },
     { label: "Newsroom", href: "#" },
     { label: "Careers", href: "#" },
@@ -27,7 +27,7 @@ const footerSections = {
 
 export default function Footer() {
   return (
-    <footer className="bg-neutral-100 border-t">
+    <footer className="bg-stone-100 border-t border-stone-200">
       {/* Links grid */}
       <div className="mx-auto max-w-container px-4 sm:px-8 md:px-10 xl:px-20 py-12">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -39,7 +39,7 @@ export default function Footer() {
                   <li key={link.href + link.label}>
                     <Link
                       href={link.href}
-                      className="text-sm text-neutral-600 hover:underline hover:text-neutral-900 transition-colors"
+                      className="text-sm text-stone-600 hover:underline hover:text-stone-900 transition-colors"
                     >
                       {link.label}
                     </Link>
@@ -55,7 +55,7 @@ export default function Footer() {
       <div className="border-t">
         <div className="mx-auto max-w-container px-4 sm:px-8 md:px-10 xl:px-20 py-6">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-            <div className="flex flex-wrap items-center gap-2 text-sm text-neutral-600">
+            <div className="flex flex-wrap items-center gap-2 text-sm text-stone-600">
               <span>&copy; {new Date().getFullYear()} StayNest, Inc.</span>
               <span className="hidden sm:inline">·</span>
               <Link href="#" className="hover:underline">Terms</Link>

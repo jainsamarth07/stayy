@@ -69,7 +69,7 @@ export default function BookingsPage() {
               action={
                 <Link
                   href="/properties"
-                  className="text-sm font-medium text-rose-600 hover:text-rose-700"
+                  className="text-sm font-medium text-primary-600 hover:text-primary-700"
                 >
                   Start exploring →
                 </Link>

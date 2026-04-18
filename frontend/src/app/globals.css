@@ -8,11 +8,11 @@
 
 @layer base {
   * {
-    @apply border-neutral-200;
+    @apply border-stone-200;
   }
 
   body {
-    @apply bg-white text-neutral-800;
+    @apply bg-[#FFFAF5] text-stone-800;
   }
 
   /* Hide scrollbar for category bar */

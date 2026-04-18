@@ -140,9 +140,9 @@ export default function ConversationPage() {
               : msg.sender_id === user?.backendId;
             return (
               <div key={msg.id} className={`flex ${isMe ? "justify-end" : "justify-start"}`}>
-                <div className={`max-w-[70%] rounded-2xl px-4 py-2.5 ${isMe ? "bg-rose-600 text-white rounded-br-md" : "bg-gray-100 text-gray-900 rounded-bl-md"}`}>
+                <div className={`max-w-[70%] rounded-2xl px-4 py-2.5 ${isMe ? "bg-primary-600 text-white rounded-br-md" : "bg-gray-100 text-gray-900 rounded-bl-md"}`}>
                   <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
-                  <p className={`text-[10px] mt-1 ${isMe ? "text-rose-200" : "text-gray-400"}`}>
+                  <p className={`text-[10px] mt-1 ${isMe ? "text-primary-200" : "text-gray-400"}`}>
                     {new Date(msg.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                   </p>
                 </div>
@@ -162,7 +162,7 @@ export default function ConversationPage() {
             onKeyDown={handleKeyDown}
             placeholder="Type a message..."
             rows={1}
-            className="flex-1 resize-none rounded-xl border border-gray-300 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-rose-200 focus:border-rose-500"
+            className="flex-1 resize-none rounded-xl border border-gray-300 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-primary-500"
             style={{ maxHeight: "120px" }}
           />
           <Button onClick={handleSend} loading={sending} disabled={!newMessage.trim()} className="rounded-xl">

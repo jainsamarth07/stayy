@@ -39,7 +39,7 @@ export default function Tabs({ tabs, activeTab, onChange }: TabsProps) {
               whitespace-nowrap border-b-2 py-3 px-1 text-sm font-medium transition-colors
               ${
                 activeTab === tab.key
-                  ? "border-rose-500 text-rose-600"
+                  ? "border-primary-500 text-primary-600"
                   : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700"
               }
             `}
@@ -49,7 +49,7 @@ export default function Tabs({ tabs, activeTab, onChange }: TabsProps) {
               <span
                 className={`ml-2 rounded-full px-2 py-0.5 text-xs ${
                   activeTab === tab.key
-                    ? "bg-rose-100 text-rose-600"
+                    ? "bg-primary-100 text-primary-600"
                     : "bg-gray-100 text-gray-600"
                 }`}
               >
