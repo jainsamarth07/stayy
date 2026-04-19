@@ -224,6 +224,7 @@ services:
       - DATABASE_URL=postgresql://staynest:${POSTGRES_PASSWORD:-staynest_secret}@db:5432/staynest
       - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET:-change-me-generate-with-openssl-rand-base64-32}
       - BETTER_AUTH_URL=http://localhost:3000
+      - GROQ_API_KEY=${GROQ_API_KEY}
       - GROQ_API_KEY=${GROQ_API_KEY:-your_groq_api_key_here}
     depends_on:
       db:

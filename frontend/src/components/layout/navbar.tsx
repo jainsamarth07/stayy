@@ -6,7 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useAuthStore } from "@/stores/auth-store";
 import { signOut } from "@/lib/auth-client";
 import { Avatar } from "@/components/ui/index";
-import { Search, Menu } from "lucide-react";
+import { Menu } from "lucide-react";
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -42,24 +42,6 @@ export default function Navbar() {
               StayNest
             </span>
           </Link>
-
-          {/* Center: Search bar */}
-          <div
-            className="hidden md:flex items-center border border-stone-300 rounded-xl bg-white shadow-sm hover:shadow-md transition cursor-pointer px-4 py-2.5 gap-3 min-w-[320px] lg:min-w-[400px]"
-            onClick={() => router.push("/properties")}
-          >
-            <Search className="h-4 w-4 text-primary-500 shrink-0" />
-            <span className="text-sm text-stone-400">Where are you going?</span>
-          </div>
-
-          {/* Mobile search button */}
-          <button
-            className="md:hidden flex items-center gap-3 border border-stone-300 rounded-xl w-full max-w-[280px] mx-4 p-2.5 shadow-sm bg-white"
-            onClick={() => router.push("/properties")}
-          >
-            <Search className="h-4 w-4 ml-1 text-primary-500" />
-            <span className="text-sm text-stone-400">Where are you going?</span>
-          </button>
 
           {/* Right side */}
           <div className="flex items-center gap-2">

@@ -59,7 +59,7 @@ export default function SearchBar({ filters, onChange, onSearch, compact }: Sear
   if (compact) {
     return (
       <div className="flex items-center border rounded-full shadow-sm hover:shadow-md transition bg-white max-w-2xl mx-auto">
-        <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 divide-x">
+        <div className="flex-1 grid grid-cols-1 sm:grid-cols-4 divide-x">
           <div className="px-6 py-3">
             <label className="block text-xs font-bold">Where</label>
             <input
@@ -70,7 +70,7 @@ export default function SearchBar({ filters, onChange, onSearch, compact }: Sear
               className="w-full text-sm bg-transparent border-0 p-0 focus:outline-none focus:ring-0 placeholder:text-stone-400 text-stone-600"
             />
           </div>
-          <div className="px-6 py-3 hidden sm:block">
+          <div className="px-4 py-3 hidden sm:block">
             <label className="block text-xs font-bold">Check in</label>
             <input
               type="date"
@@ -79,7 +79,16 @@ export default function SearchBar({ filters, onChange, onSearch, compact }: Sear
               className="w-full text-sm bg-transparent border-0 p-0 focus:outline-none focus:ring-0 text-stone-600"
             />
           </div>
-          <div className="px-6 py-3 hidden sm:block">
+          <div className="px-4 py-3 hidden sm:block">
+            <label className="block text-xs font-bold">Check out</label>
+            <input
+              type="date"
+              value={filters.check_out}
+              onChange={(e) => update("check_out", e.target.value)}
+              className="w-full text-sm bg-transparent border-0 p-0 focus:outline-none focus:ring-0 text-stone-600"
+            />
+          </div>
+          <div className="px-4 py-3 hidden sm:block">
             <label className="block text-xs font-bold">Guests</label>
             <input
               type="number"
